@@ -8,6 +8,9 @@ use sp_core::{sr25519, Pair, Public};
 use sp_finality_grandpa::AuthorityId as GrandpaId;
 use sp_runtime::traits::{IdentifyAccount, Verify};
 use sp_core::crypto::Ss58Codec;
+use std::str::FromStr;
+use sc_service::config::MultiaddrWithPeerId;
+
 
 // The URL for the telemetry server.
 // const STAGING_TELEMETRY_URL: &str = "wss://telemetry.polkadot.io/submit/";
@@ -35,6 +38,21 @@ where
 /// Generate an Aura authority key.
 pub fn authority_keys_from_seed(s: &str) -> (AuraId, GrandpaId) {
 	(get_from_seed::<AuraId>(s), get_from_seed::<GrandpaId>(s))
+}
+
+pub fn authority_keys_from_ss58(s_aura :&str, s_grandpa : &str) -> (AuraId, GrandpaId) {
+	(
+		get_aura_from_ss58_addr(s_aura),
+		get_grandpa_from_ss58_addr(s_grandpa),
+	)
+}
+
+pub fn get_aura_from_ss58_addr(s: &str) -> AuraId {
+	AuraId::from_ss58check(s).unwrap()
+}
+
+pub fn get_grandpa_from_ss58_addr(s: &str) -> GrandpaId {
+	GrandpaId::from_ss58check(s).unwrap()
 }
 
 pub fn development_config() -> Result<ChainSpec, String> {
@@ -156,6 +174,41 @@ fn testnet_genesis(
 	}
 }
 
+pub fn nakamoto_mainnet_config() -> Result<ChainSpec, String> {
+	let wasm_binary = WASM_BINARY.ok_or("Development wasm binary not available".to_string())?;
+
+	Ok(ChainSpec::from_genesis(
+		"Nakamoto Bittensor Mainnet",
+		"nakamoto_mainnet",
+		ChainType::Live,
+		move || network_genesis(
+			wasm_binary,
+			vec![
+				authority_keys_from_ss58("5D2tbCvaKpNyvnM1D272MHnjFXMfmR1A4aJ24XfSzH9zcm9t", "5Coe1QXmsMoXZMrQjYoQsUhYvVHDWze29HtrtLNEucdSY2qY"), // Gundam
+				authority_keys_from_ss58("5EekXHmQUjBrFQPct6Zwbg39E26mFrVwXm4HoGkSGpJZNr3A", "5FaU1wfZA4L6ob7c7U6c4HxLx96VECFQiporuo4QMiNMsfj9"), // Connor
+				authority_keys_from_ss58("5HEAoUKQcvH2GfXnNDrDcfFxAjuHvW7S14TFkfz6qYX3VsQy", "5CgXTNLmj3M7SMY232atsRweCRVoLKCaNFRfnYLuUBxojcpU"), // Miyagi
+				authority_keys_from_ss58("5Dq2nwHZCCaSiwYzBVhVp4fusmLh8eZ4nmzMzesqUnvW4DAs", "5DuyMR9XcD9JFN79YeGvGQDLVrE9ofcXWpGjmdbaggv9ZiWt"), // McFly
+				authority_keys_from_ss58("5H4PTNoyHZH2V8HkSamM9s4CE4SwJBmkq2KDF6zXrntTxwHs", "5FMeJZFHKjEPkoXS7svhfcasuAbvZFJnB8E2Ms1MTytPcFk3"), // Bodhi
+				authority_keys_from_ss58("5FePgMvuGPsHwaNKGvcC3eU7mv9uHcYwxWNaeYbgBs2RSFft", "5Eh9RhakCQATG3uvvvhcPv1xAdpFc31giDWK962bgFLD4vHz"), // Vader
+			],
+			AccountId::from_ss58check("5GLKGJdjCwBYgtim7F4eZCxDC3bMe9VvhCnpG2k9ihdyPX9p").unwrap(), // Sudo
+			vec![
+				AccountId::from_ss58check("5GLKGJdjCwBYgtim7F4eZCxDC3bMe9VvhCnpG2k9ihdyPX9p").unwrap(), // Sudo
+			],
+			true,
+		),
+		vec![
+			MultiaddrWithPeerId::from_str("/dns4/skywalker.nakamoto.opentensor.ai/tcp/30333/ws/p2p/12D3KooWDWw2Ph2JLHFxNUAhLpgGf2HAE2BHjXkoaj7HS9HapKnc").unwrap(),
+			MultiaddrWithPeerId::from_str("/dns4/kenobi.nakamoto.opentensor.ai/tcp/30333/ws/p2p/12D3KooWASPUokJTdXKKYvBhkcX4JxNVfaN9WUqZuoL33NJQEu7A").unwrap()
+	    ],
+		None,
+		None,
+		None,
+		None,
+		// Extensions
+		None,
+	))
+}
 
 /// Configure initial storage state for FRAME modules.
 fn network_genesis(
