@@ -41,7 +41,7 @@ pub use sp_runtime::BuildStorage;
 pub use sp_runtime::{Perbill, Permill};
 
 /// Import the template pallet.
-pub use pallet_template;
+pub use pallet_subtensor;
 
 /// An index to a block.
 pub type BlockNumber = u32;
@@ -90,8 +90,8 @@ pub mod opaque {
 //   https://docs.substrate.io/v3/runtime/upgrades#runtime-versioning
 #[sp_version::runtime_version]
 pub const VERSION: RuntimeVersion = RuntimeVersion {
-	spec_name: create_runtime_str!("node-template"),
-	impl_name: create_runtime_str!("node-template"),
+	spec_name: create_runtime_str!("node-subtensor"),
+	impl_name: create_runtime_str!("node-subtensor"),
 	authoring_version: 1,
 	// The version of the runtime specification. A full node will not attempt to use its native
 	//   runtime in substitute for the on-chain Wasm runtime unless all of `spec_name`,
@@ -266,9 +266,65 @@ impl pallet_sudo::Config for Runtime {
 	type Call = Call;
 }
 
+parameter_types! {
+	pub const SDebug:u64 = 0;
+	pub const InitialRho: u64 = 10;
+	pub const InitialKappa: u64 = 2;
+	pub const SelfOwnership: u64 = 2;
+	pub const InitialValidatorBatchSize: u64 = 10;
+	pub const InitialValidatorSequenceLen: u64 = 10;
+	pub const InitialValidatorEpochLen: u64 = 1000;
+	pub const InitialValidatorEpochsPerReset: u64 = 10;
+	pub const InitialImmunityPeriod: u64 = 200;
+	pub const InitialBlocksPerStep: u64 = 100;
+	pub const InitialMaxAllowedUids: u64 = 2000;
+	pub const InitialMinAllowedWeights: u64 = 1;
+	pub const InitialMaxAllowedMaxMinRatio: u64 = 10;
+	pub const InitialIssuance: u64 = 548833985028256;
+	pub const InitialBondsMovingAverage: u64 = 900_000;
+	pub const InitialIncentivePruningDenominator: u64 = 1;
+	pub const InitialStakePruningDenominator: u64 = 1;
+	pub const InitialFoundationDistribution: u64 = 0;
+	pub const InitialDifficulty: u64 = 10000000;
+	pub const MinimumDifficulty: u64 = 10000000;
+	pub const InitialActivityCutoff: u64 = 5000;
+	pub const MaximumDifficulty: u64 = u64::MAX/4;
+	pub const InitialAdjustmentInterval: u64 = 100;
+	pub const InitialMaxRegistrationsPerBlock: u64 = 2;
+	pub const InitialTargetRegistrationsPerInterval: u64 = 2;
+}
+
 /// Configure the pallet-template in pallets/template.
-impl pallet_template::Config for Runtime {
+impl pallet_subtensor::Config for Runtime {
+	type Currency = Balances;
 	type Event = Event;
+	type TransactionByteFee = ();
+	type SDebug = SDebug;
+	type InitialRho = InitialRho;
+	type InitialKappa = InitialKappa;
+	type SelfOwnership = SelfOwnership;
+	type InitialValidatorBatchSize = InitialValidatorBatchSize;
+	type InitialValidatorSequenceLen = InitialValidatorSequenceLen;
+	type InitialValidatorEpochLen = InitialValidatorEpochLen;
+	type InitialValidatorEpochsPerReset = InitialValidatorEpochsPerReset;
+	type InitialImmunityPeriod = InitialImmunityPeriod;
+	type InitialMaxAllowedUids = InitialMaxAllowedUids;
+	type InitialMinAllowedWeights = InitialMinAllowedWeights;
+	type InitialBondsMovingAverage = InitialBondsMovingAverage;
+	type InitialMaxAllowedMaxMinRatio = InitialMaxAllowedMaxMinRatio;
+	type InitialStakePruningDenominator = InitialStakePruningDenominator;
+	type InitialIncentivePruningDenominator = InitialIncentivePruningDenominator;
+	type InitialFoundationDistribution = InitialFoundationDistribution;
+	type InitialBlocksPerStep = InitialBlocksPerStep;
+	type InitialIssuance = InitialIssuance;
+	type InitialDifficulty = InitialDifficulty;
+	type MinimumDifficulty = MinimumDifficulty;
+	type MaximumDifficulty = MaximumDifficulty;
+	type InitialActivityCutoff = InitialActivityCutoff;
+	type InitialAdjustmentInterval = InitialAdjustmentInterval;
+	type InitialMaxRegistrationsPerBlock = InitialMaxRegistrationsPerBlock;
+	type InitialTargetRegistrationsPerInterval = InitialTargetRegistrationsPerInterval;
+
 }
 
 // Create the runtime by composing the FRAME pallets that were previously configured.
@@ -287,7 +343,7 @@ construct_runtime!(
 		TransactionPayment: pallet_transaction_payment,
 		Sudo: pallet_sudo,
 		// Include the custom logic from the pallet-template in the runtime.
-		TemplateModule: pallet_template,
+		SubtensorModule: pallet_subtensor,
 	}
 );
 
@@ -330,7 +386,7 @@ mod benches {
 		[frame_system, SystemBench::<Runtime>]
 		[pallet_balances, Balances]
 		[pallet_timestamp, Timestamp]
-		[pallet_template, TemplateModule]
+		[pallet_subtensor, SubtensorModule]
 	);
 }
 
