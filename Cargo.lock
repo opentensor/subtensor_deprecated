@@ -3551,14 +3551,14 @@ dependencies = [
 ]
 
 [[package]]
-name = "node-template"
+name = "node-subtensor"
 version = "4.0.0-dev"
 dependencies = [
  "clap",
  "frame-benchmarking",
  "frame-benchmarking-cli",
  "jsonrpc-core",
- "node-template-runtime",
+ "node-subtensor-runtime",
  "pallet-transaction-payment-rpc",
  "sc-basic-authorship",
  "sc-cli",
@@ -3588,7 +3588,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "node-template-runtime"
+name = "node-subtensor-runtime"
 version = "4.0.0-dev"
 dependencies = [
  "frame-benchmarking",

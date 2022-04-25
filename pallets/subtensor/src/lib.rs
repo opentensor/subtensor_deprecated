@@ -258,14 +258,6 @@ pub mod pallet {
 	#[pallet::generate_store(pub(super) trait Store)]
 	pub struct Pallet<T>(_);
 
-	// The pallet's runtime storage items.
-	// https://docs.substrate.io/v3/runtime/storage
-	#[pallet::storage]
-	#[pallet::getter(fn something)]
-	// Learn more about declaring storage items:
-	// https://docs.substrate.io/v3/runtime/storage#declaring-storage-items
-	pub type Something<T> = StorageValue<_, u32>;
-
 	/// ************************************************************
 	///	*---- Storage Objects
 	/// ************************************************************
@@ -851,41 +843,429 @@ pub mod pallet {
 	// Dispatchable functions must be annotated with a weight and must return a DispatchResult.
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
-		/// An example dispatchable that takes a singles value as a parameter, writes the value to
-		/// storage and emits an event. This function must be dispatched by a signed extrinsic.
-		#[pallet::weight(10_000 + T::DbWeight::get().writes(1))]
-		pub fn do_something(origin: OriginFor<T>, something: u32) -> DispatchResult {
-			// Check that the extrinsic was signed and get the signer.
-			// This function will return an error if the extrinsic is not signed.
-			// https://docs.substrate.io/v3/runtime/origins
-			let who = ensure_signed(origin)?;
+        /// --- Sets the caller weights for the incentive mechanism. The call can be
+		/// made from the hotkey account so is potentially insecure, however, the damage
+		/// of changing weights is minimal if caught early. This function includes all the
+		/// checks that the passed weights meet the requirements. Stored as u32s they represent
+		/// rational values in the range [0,1] which sum to 1 and can be interpreted as
+		/// probabilities. The specific weights determine how inflation propagates outward
+		/// from this peer. 
+		/// 
+		/// Note: The 32 bit integers weights should represent 1.0 as the max u32.
+		/// However, the function normalizes all integers to u32_max anyway. This means that if the sum of all
+		/// elements is larger or smaller than the amount of elements * u32_max, all elements
+		/// will be corrected for this deviation. 
+		/// 
+		/// # Args:
+		/// 	* `origin`: (<T as frame_system::Config>Origin):
+		/// 		- The caller, a hotkey who wishes to set their weights.
+		/// 
+		/// 	* `uids` (Vec<u32>):
+		/// 		- The edge endpoint for the weight, i.e. j for w_ij.
+		///
+		/// 	* 'weights' (Vec<u32>):
+		/// 		- The u32 integer encoded weights. Interpreted as rational
+		/// 		values in the range [0,1]. They must sum to in32::MAX.
+		///
+		/// # Event:
+		/// 	* WeightsSet;
+		/// 		- On successfully setting the weights on chain.
+		///
+		/// # Raises:
+		/// 	* 'WeightVecNotEqualSize':
+		/// 		- If the passed weights and uids have unequal size.
+		///
+		/// 	* 'WeightSumToLarge':
+		/// 		- When the calling coldkey is not associated with the hotkey account.
+		///
+		/// 	* 'InsufficientBalance':
+		/// 		- When the amount to stake exceeds the amount of balance in the
+		/// 		associated colkey account.
+		///
+        #[pallet::weight((0, DispatchClass::Normal, Pays::No))]
+		pub fn set_weights(
+			origin:OriginFor<T>, 
+			dests: Vec<u32>, 
+			weights: Vec<u32>
+		) -> DispatchResult {
+			Self::do_set_weights(origin, dests, weights)
+		}
+		
+		/// --- Adds stake to a neuron account. The call is made from the
+		/// coldkey account linked in the neurons's NeuronMetadata.
+		/// Only the associated coldkey is allowed to make staking and
+		/// unstaking requests. This protects the neuron against
+		/// attacks on its hotkey running in production code.
+		///
+		/// # Args:
+		/// 	* 'origin': (<T as frame_system::Config>Origin):
+		/// 		- The caller, a coldkey signature associated with the hotkey account.
+		///
+		/// 	* 'hotkey' (T::AccountId):
+		/// 		- The hotkey account to add stake to.
+		///
+		/// 	* 'ammount_staked' (u64):
+		/// 		- The ammount to transfer from the balances account of the cold key
+		/// 		into the staking account of the hotkey.
+		///
+		/// # Event:
+		/// 	* 'StakeAdded':
+		/// 		- On the successful staking of funds.
+		///
+		/// # Raises:
+		/// 	* 'NotRegistered':
+		/// 		- If the hotkey account is not active (has not subscribed)
+		///
+		/// 	* 'NonAssociatedColdKey':
+		/// 		- When the calling coldkey is not associated with the hotkey account.
+		///
+		/// 	* 'InsufficientBalance':
+		/// 		- When the amount to stake exceeds the amount of balance in the
+		/// 		associated colkey account.
+		///
+		#[pallet::weight((0, DispatchClass::Normal, Pays::No))]
+		pub fn add_stake(
+			origin:OriginFor<T>, 
+			hotkey: T::AccountId, 
+			ammount_staked: u64
+		) -> DispatchResult {
+			Self::do_add_stake(origin, hotkey, ammount_staked)
+		}
 
-			// Update storage.
-			<Something<T>>::put(something);
+		/// ---- Remove stake from the staking account. The call must be made
+		/// from the coldkey account attached to the neuron metadata. Only this key
+		/// has permission to make staking and unstaking requests.
+		///
+		/// # Args:
+		/// 	* 'origin': (<T as frame_system::Config>Origin):
+		/// 		- The caller, a coldkey signature associated with the hotkey account.
+		///
+		/// 	* 'hotkey' (T::AccountId):
+		/// 		- The hotkey account to withdraw stake from.
+		///
+		/// 	* 'ammount_unstaked' (u64):
+		/// 		- The ammount to transfer from the staking account into the balance
+		/// 		of the coldkey.
+		///
+		/// # Event:
+		/// 	* 'StakeRemoved':
+		/// 		- On successful withdrawl.
+		///
+		/// # Raises:
+		/// 	* 'NonAssociatedColdKey':
+		/// 		- When the calling coldkey is not associated with the hotkey account.
+		///
+		/// 	* 'NotEnoughStaketoWithdraw':
+		/// 		- When the amount to unstake exceeds the quantity staked in the
+		/// 		associated hotkey staking account.
+		///
+		#[pallet::weight((0, DispatchClass::Normal, Pays::No))]
+		pub fn remove_stake(
+			origin:OriginFor<T>, 
+			hotkey: T::AccountId, 
+			ammount_unstaked: u64
+		) -> DispatchResult {
+			Self::do_remove_stake(origin, hotkey, ammount_unstaked)
+		}
 
-			// Emit an event.
-			Self::deposit_event(Event::SomethingStored(something, who));
-			// Return a successful DispatchResultWithPostInfo
+		/// ---- Serves or updates axon information for the neuron associated with the caller. If the caller
+		/// already registered the metadata is updated. If the caller is not registered this call throws NotRegsitered.
+		///
+		/// # Args:
+		/// 	* 'origin': (<T as frame_system::Config>Origin):
+		/// 		- The caller, a hotkey associated of the registered neuron.
+		///
+		/// 	* 'ip' (u128):
+		/// 		- The u64 encoded IP address of type 6 or 4.
+		///
+		/// 	* 'port' (u16):
+		/// 		- The port number where this neuron receives RPC requests.
+		///
+		/// 	* 'ip_type' (u8):
+		/// 		- The ip type one of (4,6).
+		///
+		/// 	* 'modality' (u8):
+		/// 		- The neuron modality type.
+		///
+		/// # Event:
+		/// 	* 'AxonServed':
+		/// 		- On subscription of a new neuron to the active set.
+		///
+		#[pallet::weight((0, DispatchClass::Normal, Pays::No))]
+		pub fn serve_axon (
+			origin:OriginFor<T>, 
+			version: u32, 
+			ip: u128, 
+			port: u16, 
+			ip_type: u8, 
+			modality: u8 
+		) -> DispatchResult {
+			Self::do_serve_axon( origin, version, ip, port, ip_type, modality )
+		}
+
+		/// ---- Registers a new neuron to the graph. 
+		///
+		/// # Args:
+		/// 	* 'origin': (<T as frame_system::Config>Origin):
+		/// 		- The caller, registration key as found in RegistrationKey::get(0);
+		///
+		/// 	* 'block_number' (u64):
+		/// 		- Block number of hash to attempt.
+		///
+		/// 	* 'nonce' (u64):
+		/// 		- Hashing nonce as a u64.
+		///
+		/// 	* 'work' (Vec<u8>):
+		/// 		- Work hash as list of bytes.
+		/// 
+		/// 	* 'hotkey' (T::AccountId,):
+		/// 		- Hotkey to register.
+		/// 
+		/// 	* 'coldkey' (T::AccountId,):
+		/// 		- Coldkey to register.
+		///
+		/// # Event:
+		/// 	* 'NeuronRegistered':
+		/// 		- On subscription of a new neuron to the active set.
+		///
+		#[pallet::weight((0, DispatchClass::Normal, Pays::No))]
+		pub fn register( 
+				origin:OriginFor<T>, 
+				block_number: u64, 
+				nonce: u64, 
+				work: Vec<u8>,
+				hotkey: T::AccountId, 
+				coldkey: T::AccountId 
+		) -> DispatchResult {
+			Self::do_registration(origin, block_number, nonce, work, hotkey, coldkey)
+		}
+
+
+		/// ---- SUDO ONLY FUNCTIONS
+		///
+		/// # Args:
+		/// 	* 'origin': (<T as frame_system::Config>Origin):
+		/// 		- The caller, must be sudo.
+		///
+		/// ONE OF:
+		/// 	* 'adjustment_interval' (u64):
+		/// 	* 'activity_cutoff' (u64):
+		/// 	* 'difficulty' (u64):
+		///
+		/// # Events:
+		///		* 'DifficultySet'
+		/// 	* 'AdjustmentIntervalSet'
+		///		* 'ActivityCuttoffSet'
+		///		* 'TargetRegistrationsPerIntervalSet'
+		///
+		/// 
+		#[pallet::weight((0, DispatchClass::Operational, Pays::No))]
+		pub fn sudo_set_blocks_per_step ( 
+			origin:OriginFor<T>, 
+			blocks_per_step: u64 
+		) -> DispatchResult {
+			ensure_root( origin )?;
+			BlocksPerStep::<T>::set( blocks_per_step );
+			Self::deposit_event( Event::BlocksPerStepSet( blocks_per_step ) );
 			Ok(())
 		}
 
-		/// An example dispatchable that may throw a custom error.
-		#[pallet::weight(10_000 + T::DbWeight::get().reads_writes(1,1))]
-		pub fn cause_error(origin: OriginFor<T>) -> DispatchResult {
-			let _who = ensure_signed(origin)?;
+		#[pallet::weight((0, DispatchClass::Operational, Pays::No))]
+		pub fn sudo_set_bonds_moving_average ( 
+			origin:OriginFor<T>, 
+			bonds_moving_average: u64 
+		) -> DispatchResult {
+			ensure_root( origin )?;
+			BondsMovingAverage::<T>::set( bonds_moving_average );
+			Self::deposit_event( Event::BondsMovingAverageSet( bonds_moving_average ) );
+			Ok(())
+		}
 
-			// Read a value from storage.
-			match <Something<T>>::get() {
-				// Return an error if the value has not been set.
-				None => Err(Error::<T>::NoneValue)?,
-				Some(old) => {
-					// Increment the value read from storage; will error in the event of overflow.
-					let new = old.checked_add(1).ok_or(Error::<T>::StorageOverflow)?;
-					// Update the value in storage with the incremented result.
-					<Something<T>>::put(new);
-					Ok(())
-				},
-			}
+		#[pallet::weight((0, DispatchClass::Operational, Pays::No))]
+		pub fn sudo_set_difficulty ( 
+			origin:OriginFor<T>, 
+			difficulty: u64 
+		) -> DispatchResult {
+			ensure_root( origin )?;
+			Difficulty::<T>::set( difficulty );
+			Self::deposit_event( Event::DifficultySet( difficulty ) );
+			Ok(())
+		}
+
+		#[pallet::weight((0, DispatchClass::Operational, Pays::No))]
+		pub fn sudo_set_adjustment_interval ( 
+			origin:OriginFor<T>, 
+			adjustment_interval: u64 
+		) -> DispatchResult {
+			ensure_root( origin )?;
+			AdjustmentInterval::<T>::set( adjustment_interval );
+			Self::deposit_event( Event::AdjustmentIntervalSet( adjustment_interval ) );
+			Ok(())
+		}
+
+		#[pallet::weight((0, DispatchClass::Operational, Pays::No))]
+		pub fn sudo_set_activity_cutoff ( 
+			origin:OriginFor<T>, 
+			activity_cutoff: u64 
+		) -> DispatchResult {
+			ensure_root( origin )?;
+			ActivityCutoff::<T>::set( activity_cutoff );
+			Self::deposit_event( Event::ActivityCuttoffSet( activity_cutoff ) );
+			Ok(())
+		}
+
+		#[pallet::weight((0, DispatchClass::Operational, Pays::No))]
+		pub fn sudo_target_registrations_per_interval ( 
+			origin:OriginFor<T>, 
+			target_registrations_per_interval: u64 
+		) -> DispatchResult {
+			ensure_root( origin )?;
+			TargetRegistrationsPerInterval::<T>::set( target_registrations_per_interval );
+			Self::deposit_event( Event::TargetRegistrationsPerIntervalSet( target_registrations_per_interval ) );
+			Ok(())
+		}
+
+		#[pallet::weight((0, DispatchClass::Operational, Pays::No))]
+		pub fn sudo_set_rho ( 
+			origin:OriginFor<T>, 
+			rho: u64 
+		) -> DispatchResult {
+			ensure_root( origin )?;
+			Rho::<T>::set( rho );
+			Self::deposit_event( Event::RhoSet( rho ) );
+			Ok(())
+		}
+
+		#[pallet::weight((0, DispatchClass::Operational, Pays::No))]
+		pub fn sudo_set_kappa ( 
+			origin:OriginFor<T>, 
+			kappa: u64 
+		) -> DispatchResult {
+			ensure_root( origin )?;
+			Kappa::<T>::set( kappa );
+			Self::deposit_event( Event::KappaSet( kappa ) );
+			Ok(())
+		}
+
+		#[pallet::weight((0, DispatchClass::Operational, Pays::No))]
+		pub fn sudo_set_max_allowed_uids ( 
+			origin:OriginFor<T>, 
+			max_allowed_uids: u64 
+		) -> DispatchResult {
+			ensure_root( origin )?;
+			MaxAllowedUids::<T>::set( max_allowed_uids );
+			Self::deposit_event( Event::MaxAllowedUidsSet( max_allowed_uids ) );
+			Ok(())
+		}
+
+		#[pallet::weight((0, DispatchClass::Operational, Pays::No))]
+		pub fn sudo_set_min_allowed_weights ( 
+			origin:OriginFor<T>, 
+			min_allowed_weights: u64 
+		) -> DispatchResult {
+			ensure_root( origin )?;
+			MinAllowedWeights::<T>::set( min_allowed_weights );
+			Self::deposit_event( Event::MinAllowedWeightsSet( min_allowed_weights ) );
+			Ok(())
+		}
+
+		#[pallet::weight((0, DispatchClass::Operational, Pays::No))]
+		pub fn sudo_set_max_allowed_max_min_ratio ( 
+			origin:OriginFor<T>, 
+			max_allowed_max_min_ratio: u64 
+		) -> DispatchResult {
+			ensure_root( origin )?;
+			MaxAllowedMaxMinRatio::<T>::set( max_allowed_max_min_ratio );
+			Self::deposit_event( Event::MaxAllowedMaxMinRatioSet( max_allowed_max_min_ratio ) );
+			Ok(())
+		}
+
+		#[pallet::weight((0, DispatchClass::Operational, Pays::No))]
+		pub fn sudo_set_validator_batch_size ( 
+			origin:OriginFor<T>, 
+			validator_batch_size: u64 
+		) -> DispatchResult {
+			ensure_root( origin )?;
+			ValidatorBatchSize::<T>::set( validator_batch_size );
+			Self::deposit_event( Event::ValidatorBatchSizeSet( validator_batch_size ) );
+			Ok(())
+		}
+
+		#[pallet::weight((0, DispatchClass::Operational, Pays::No))]
+		pub fn sudo_set_validator_sequence_length ( 
+			origin:OriginFor<T>, 
+			validator_sequence_length: u64 
+		) -> DispatchResult {
+			ensure_root( origin )?;
+			ValidatorSequenceLength::<T>::set( validator_sequence_length );
+			Self::deposit_event( Event::ValidatorSequenceLengthSet( validator_sequence_length ) );
+			Ok(())
+		}
+
+		#[pallet::weight((0, DispatchClass::Operational, Pays::No))]
+		pub fn sudo_set_validator_epoch_len ( 
+			origin:OriginFor<T>, 
+			validator_epoch_len : u64 
+		) -> DispatchResult {
+			ensure_root( origin )?;
+			ValidatorEpochLen::<T>::set( validator_epoch_len );
+			Self::deposit_event( Event::ValidatorEpochLenSet( validator_epoch_len ) );
+			Ok(())
+		}
+
+		#[pallet::weight((0, DispatchClass::Operational, Pays::No))]
+		pub fn sudo_set_validator_epochs_per_reset ( 
+			origin:OriginFor<T>, 
+			validator_epochs_per_reset : u64 
+		) -> DispatchResult {
+			ensure_root( origin )?;
+			ValidatorEpochsPerReset::<T>::set( validator_epochs_per_reset );
+			Self::deposit_event( Event::ValidatorEpochsPerResetSet( validator_epochs_per_reset ) );
+			Ok(())
+		}
+
+		#[pallet::weight((0, DispatchClass::Operational, Pays::No))]
+		pub fn sudo_set_incentive_pruning_denominator( 
+			origin:OriginFor<T>, 
+			incentive_pruning_denominator: u64 
+		) -> DispatchResult {
+			ensure_root( origin )?;
+			IncentivePruningDenominator::<T>::set( incentive_pruning_denominator );
+			Self::deposit_event( Event::IncentivePruningDenominatorSet( incentive_pruning_denominator ));
+			Ok(())
+		}
+		
+		#[pallet::weight((0, DispatchClass::Operational, Pays::No))]
+		pub fn sudo_set_stake_pruning_denominator( 
+			origin:OriginFor<T>, 
+			stake_pruning_denominator: u64 
+		) -> DispatchResult {
+			ensure_root( origin )?;
+			StakePruningDenominator::<T>::set( stake_pruning_denominator );
+			Self::deposit_event( Event::StakePruningDenominatorSet( stake_pruning_denominator ));
+			Ok(())
+		}
+
+
+		#[pallet::weight((0, DispatchClass::Operational, Pays::No))]
+		pub fn sudo_set_immunity_period ( 
+			origin:OriginFor<T>, 
+			immunity_period: u64 
+		) -> DispatchResult {
+			ensure_root( origin )?;
+			ImmunityPeriod::<T>::set( immunity_period );
+			Self::deposit_event( Event::ImmunityPeriodSet( immunity_period ) );
+			Ok(())
+		}
+
+		#[pallet::weight((0, DispatchClass::Operational, Pays::No))]
+		pub fn sudo_reset_bonds ( 
+			origin:OriginFor<T>
+		) -> DispatchResult {
+			ensure_root( origin )?;
+			Self::reset_bonds();
+			Self::deposit_event( Event::ResetBonds() );
+			Ok(())
 		}
 	}
 
@@ -1298,4 +1678,182 @@ pub mod pallet {
 		}
 
 	}
+}
+
+/************************************************************
+	CallType definition
+************************************************************/
+#[derive(Debug, PartialEq)]
+pub enum CallType {
+    SetWeights,
+    AddStake,
+    RemoveStake,
+    Register,
+    Serve,
+	Other,
+}
+impl Default for CallType {
+    fn default() -> Self {
+        CallType::Other
+    }
+}
+
+
+/************************************************************
+	SubtensorSignedExtension definition
+************************************************************/
+
+#[derive(Encode, Decode, Clone, Eq, PartialEq, scale_info::TypeInfo)]
+#[scale_info(skip_type_params(T))]
+pub struct SubtensorSignedExtension<T: Config + Send + Sync>(pub PhantomData<T>);
+
+impl<T: Config + Send + Sync> SubtensorSignedExtension<T> where
+    T::Call: Dispatchable<Info=DispatchInfo, PostInfo=PostDispatchInfo>,
+    <T as frame_system::Config>::Call: IsSubType<Call<T>>,
+{
+    pub fn new() -> Self {
+        Self(Default::default())
+	}
+    pub fn get_priority_vanilla() -> u64 {
+        // Just return a rediculously high priority. This means that all extrinsics except
+        // the set_weights function will have a priority over the set_weights calls.
+        return u64::max_value();
+    }
+	pub fn get_priority_set_weights( who: &T::AccountId, len: u64 ) -> u64 {
+		// Return the non vanilla priority for a set weights call.
+        return Pallet::<T>::get_priority_set_weights( who, len );
+    }
+}
+
+impl<T: Config + Send + Sync> sp_std::fmt::Debug for SubtensorSignedExtension<T> {
+    fn fmt(&self, f: &mut sp_std::fmt::Formatter) -> sp_std::fmt::Result {
+        write!(f, "SubtensorSignedExtension")
+    }
+}
+
+impl<T: Config + Send + Sync> SignedExtension for SubtensorSignedExtension<T>
+    where
+        T::Call: Dispatchable<Info=DispatchInfo, PostInfo=PostDispatchInfo>,
+        <T as frame_system::Config>::Call: IsSubType<Call<T>>,
+{
+	const IDENTIFIER: &'static str = "SubtensorSignedExtension";
+
+    type AccountId = T::AccountId;
+    type Call = <T as frame_system::Config>::Call;
+    //<T as frame_system::Trait>::Call;
+    type AdditionalSigned = ();
+    type Pre = (CallType, u64, Self::AccountId);
+    fn additional_signed(&self) -> Result<Self::AdditionalSigned, TransactionValidityError> { Ok(()) }
+
+    fn validate(
+        &self,
+        who: &Self::AccountId,
+        call: &Self::Call,
+        _info: &DispatchInfoOf<Self::Call>,
+        len: usize,
+    ) -> TransactionValidity {
+        match call.is_sub_type() {
+            Some(Call::set_weights{..}) => {
+				let priority: u64 = Self::get_priority_set_weights(who, len as u64);
+                Ok(ValidTransaction {
+                    priority: priority,
+                    longevity: 1,
+                    ..Default::default()
+                })
+            }
+            Some(Call::add_stake{..}) => {
+                Ok(ValidTransaction {
+                    priority: Self::get_priority_vanilla(),
+                    ..Default::default()
+                })
+            }
+            Some(Call::remove_stake{..}) => {
+                Ok(ValidTransaction {
+                    priority: Self::get_priority_vanilla(),
+                    ..Default::default()
+                })
+            }
+            Some(Call::register{..}) => {
+                Ok(ValidTransaction {
+                    priority: Self::get_priority_vanilla(),
+                    ..Default::default()
+                })
+            }
+            _ => {
+                Ok(ValidTransaction {
+                    priority: Self::get_priority_vanilla(),
+                    ..Default::default()
+                })
+            }
+        }
+    }
+
+    // NOTE: Add later when we put in a pre and post dispatch step.
+    fn pre_dispatch(
+        self,
+        who: &Self::AccountId,
+        call: &Self::Call,
+        _info: &DispatchInfoOf<Self::Call>,
+        _len: usize,
+    ) -> Result<Self::Pre, TransactionValidityError> {
+
+        match call.is_sub_type() {
+            Some(Call::add_stake{..}) => {
+				let transaction_fee = 0;
+                Ok((CallType::AddStake, transaction_fee, who.clone()))
+            }
+            Some(Call::remove_stake{..}) => {
+				let transaction_fee = 0;
+                Ok((CallType::RemoveStake, transaction_fee, who.clone()))
+            }
+			Some(Call::set_weights{..}) => {
+				let transaction_fee = 0;
+                Ok((CallType::SetWeights, transaction_fee, who.clone())) 
+            }
+			Some(Call::register{..}) => {
+                let transaction_fee = 0;
+                Ok((CallType::Register, transaction_fee, who.clone()))
+            }
+            Some(Call::serve_axon{..}) => {
+                let transaction_fee = 0;
+                Ok((CallType::Serve, transaction_fee, who.clone()))
+            }
+            _ => {
+				let transaction_fee = 0;
+                Ok((CallType::Other, transaction_fee, who.clone()))
+            }
+        }
+    }
+
+    fn post_dispatch(
+        pre: Option<Self::Pre>,
+        _info: &DispatchInfoOf<Self::Call>,
+        _post_info: &PostDispatchInfoOf<Self::Call>,
+        _len: usize,
+        result: &dispatch::DispatchResult,
+    ) -> Result<(), TransactionValidityError> {
+		let call_type = pre.unwrap().0;
+        match result {
+            Ok(_) => {
+                match call_type {
+                    CallType::SetWeights => {
+                        Ok(Default::default())
+                    }
+                    CallType::AddStake => {
+                        Ok(Default::default())
+                    }
+                    CallType::RemoveStake => {
+                        Ok(Default::default())
+                    }
+                    CallType::Register => {
+                        Ok(Default::default())
+                    }
+                    _ => {
+						Ok(Default::default())
+                    }
+                }
+            }
+            Err(_) => Ok(Default::default())
+        }
+    }
 }
