@@ -73,10 +73,10 @@ pub fn new_partial(
 			Ok((worker, telemetry))
 		})
 		.transpose()?;
-
+		
 	let executor = NativeElseWasmExecutor::<ExecutorDispatch>::new(
 		config.wasm_method,
-		config.default_heap_pages,
+		Some(8192),
 		config.max_runtime_instances,
 		config.runtime_cache_size,
 	);
