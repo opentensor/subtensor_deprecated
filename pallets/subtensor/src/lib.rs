@@ -1824,36 +1824,4 @@ impl<T: Config + Send + Sync> SignedExtension for SubtensorSignedExtension<T>
             }
         }
     }
-
-    fn post_dispatch(
-        pre: Option<Self::Pre>,
-        _info: &DispatchInfoOf<Self::Call>,
-        _post_info: &PostDispatchInfoOf<Self::Call>,
-        _len: usize,
-        result: &dispatch::DispatchResult,
-    ) -> Result<(), TransactionValidityError> {
-		let call_type = pre.unwrap().0;
-        match result {
-            Ok(_) => {
-                match call_type {
-                    CallType::SetWeights => {
-                        Ok(Default::default())
-                    }
-                    CallType::AddStake => {
-                        Ok(Default::default())
-                    }
-                    CallType::RemoveStake => {
-                        Ok(Default::default())
-                    }
-                    CallType::Register => {
-                        Ok(Default::default())
-                    }
-                    _ => {
-						Ok(Default::default())
-                    }
-                }
-            }
-            Err(_) => Ok(Default::default())
-        }
-    }
 }
