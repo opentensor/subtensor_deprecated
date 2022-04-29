@@ -261,15 +261,21 @@ impl<T: Config> Pallet<T> {
             // === Iterate over weights ===
             for ( uid_j, weight_ij ) in weights_i.iter() {
 
-                if active[ *uid_i as usize ] != 1 { continue } // Skip non active.
                 if *uid_i == *uid_j { continue } // Skip self-weight.
 
                 // === Compute score increments ===
-                let weight_ij: I65F63 = I65F63::from_num( *weight_ij ) / u32_max; // Range( 0, 1 )
-                let trust_increment_ij: I65F63 = stake_i; // Range( 0, 1 )                
-                let rank_increment_ij: I65F63 = stake_i * weight_ij; // Range( 0, total_active_stake )
-                let bond_increment_ij: I65F63 = rank_increment_ij * block_emission; // Range( 0, block_emission )
-            
+                // Non active validators dont have the ability to increase ranks.
+                // & bond increments converge to zero for non active validators.
+                let mut rank_increment_ij: I65F63 = I65F63::from_num(0.0);
+                let mut bond_increment_ij: I65F63 = I65F63::from_num(0.0);
+                let mut trust_increment_ij: I65F63 = I65F63::from_num(0.0);
+                if active[ *uid_i as usize ] == 1 { 
+                    let weight_ij: I65F63 = I65F63::from_num( *weight_ij ) / u32_max; // Range( 0, 1 )
+                    trust_increment_ij = stake_i; // Range( 0, 1 )                
+                    rank_increment_ij = stake_i * weight_ij; // Range( 0, total_active_stake )
+                    bond_increment_ij = rank_increment_ij * block_emission;
+                }
+                
                 // === Increment neuron scores ===
                 ranks[ *uid_j as usize ] += rank_increment_ij;  // Range( 0, total_active_stake )
                 trust[ *uid_j as usize ] += trust_increment_ij;  // Range( 0, total_active_stake )

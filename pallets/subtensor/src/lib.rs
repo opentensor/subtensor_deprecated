@@ -30,7 +30,6 @@ use sp_runtime::{
 		Dispatchable, 
 		DispatchInfoOf, 
 		SignedExtension, 
-		PostDispatchInfoOf,
 	},
 	transaction_validity::{
         TransactionValidityError, 
@@ -1039,8 +1038,6 @@ pub mod pallet {
 		) -> DispatchResult {
 			Self::do_registration(origin, block_number, nonce, work, hotkey, coldkey)
 		}
-
-
 		/// ---- SUDO ONLY FUNCTIONS
 		///
 		/// # Args:
