@@ -36,6 +36,12 @@ pallet-transaction-payment = { version = '4.0.0-dev', git = 'https://github.com/
 serde = { version = "1.0.135" }
 rand = { version = "0.7.2"  }
 pallet-sudo = { version = "4.0.0-dev", git = 'https://github.com/paritytech/substrate.git', branch = 'polkadot-v0.9.17' }
+pallet-balances = { version = '4.0.0-dev', git = 'https://github.com/paritytech/substrate.git', branch = 'polkadot-v0.9.17' }
+sp-version = { version = '4.0.0-dev', git = 'https://github.com/paritytech/substrate.git', branch = 'polkadot-v0.9.17' }
+frame-executive = { version = '4.0.0-dev', git = 'https://github.com/paritytech/substrate.git', branch = 'polkadot-v0.9.17' }
+sp-tracing = { version = '4.0.0-dev', git = 'https://github.com/paritytech/substrate.git', branch = 'polkadot-v0.9.17' }
+parity-util-mem = { version = "0.10.2", features = ['primitive-types'] }
+sp-application-crypto = { version = '5.0.0', git = 'https://github.com/paritytech/substrate.git', branch = 'polkadot-v0.9.17'  }
 
 
 [features]

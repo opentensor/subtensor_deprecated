@@ -44,6 +44,9 @@ use sp_std::marker::PhantomData;
 #[cfg(feature = "runtime-benchmarks")]
 mod benchmarking;
 
+/// ************************************************************
+///	-Subtensor-Imports
+/// ************************************************************
 mod weights;
 mod serving;
 mod step;
@@ -604,6 +607,51 @@ pub mod pallet {
 		ValueQuery,
 		DefaultBlockAtRegistration<T>
 	>;
+
+	/// ************************************************************
+	///	-Genesis-Configuration
+	/// ************************************************************
+	/// ---- Genesis Configuration (Mostly used for testing.)
+    #[pallet::genesis_config]
+    pub struct GenesisConfig {
+        pub stake: Vec<(u64, u64)>,
+    }
+
+	#[cfg(feature = "std")]
+	impl Default for GenesisConfig {
+		fn default() -> Self {
+			Self {
+				stake: Default::default(),
+			}
+		}
+	}
+    
+    #[pallet::genesis_build]
+    impl<T:Config> GenesisBuild<T> for GenesisConfig {
+        fn build(&self) {		
+		}
+	}
+
+
+	#[cfg(feature = "std")]
+	impl GenesisConfig {
+		/// Direct implementation of `GenesisBuild::build_storage`.
+		///
+		/// Kept in order not to break dependency.
+		pub fn build_storage<T: Config>(&self) -> Result<sp_runtime::Storage, String> {
+			<Self as GenesisBuild<T>>::build_storage(self)
+		}
+
+		/// Direct implementation of `GenesisBuild::assimilate_storage`.
+		///
+		/// Kept in order not to break dependency.
+		pub fn assimilate_storage<T: Config>(
+			&self,
+			storage: &mut sp_runtime::Storage
+		) -> Result<(), String> {
+			<Self as GenesisBuild<T>>::assimilate_storage(self, storage)
+		}
+	}
 
 	
 
