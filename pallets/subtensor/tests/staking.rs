@@ -4,7 +4,7 @@ mod mock;
 use mock::*;
 use mock::{TestXt};
 use frame_support::sp_runtime::DispatchError;
-use pallet_subtensor::{Error};
+use pallet_subtensor::{Error, Call as SubtensorCall};
 use frame_support::weights::{GetDispatchInfo, DispatchInfo, DispatchClass, Pays};
 
 /***********************************************************
@@ -49,14 +49,10 @@ fn test_add_stake_transaction_fee_ends_up_in_transaction_fee_pool() {
 		assert_eq!(start_balance, 1_000_000_000);
 		assert_eq!(start_stake, 0);
 
-		let call = Subtensor::add_stake(<<Test as Config>::Origin>::signed(test_neuron_cold_key), hotkey, ammount_staked);
-		let xt = TestXt::new( call, mock::sign_extra(test_neuron_cold_key, 0) );
-		let result = mock::Executive::apply_extrinsic( xt );
-		assert_ok!(result);
-        
-        let end_stake = Subtensor::get_stake_of_neuron_hotkey_account_by_uid(test_neuron.uid);
-        assert_eq!(end_stake, ammount_staked);
 
+		let result = Subtensor::add_stake(<<Test as Config>::Origin>::signed(test_neuron_cold_key), hotkey, ammount_staked);
+		assert_ok!(result);
+    
 
 		let end_balance = Subtensor::get_coldkey_balance( &test_neuron_cold_key );
 		assert_eq!(end_balance, 500_000_000);
