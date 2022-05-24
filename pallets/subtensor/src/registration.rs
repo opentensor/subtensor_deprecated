@@ -3,7 +3,7 @@ use substrate_fixed::types::I65F63;
 use frame_support::IterableStorageMap;
 use sp_std::convert::TryInto;
 use sp_core::{H256, U256};
-use sp_io::hashing::sha2_256;
+use sp_io::hashing::sha2_2
 use sp_io::hashing::keccak_256;
 use frame_system::{ensure_signed};
 
@@ -19,8 +19,6 @@ impl<T: Config> Pallet<T> {
         hotkey: T::AccountId, 
         coldkey: T::AccountId 
     ) -> dispatch::DispatchResult {
-
-        log::info!("--- Registration call here!");
 
         // --- Check the callers hotkey signature.
         ensure_signed(origin)?;
