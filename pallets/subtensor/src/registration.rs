@@ -20,6 +20,8 @@ impl<T: Config> Pallet<T> {
         coldkey: T::AccountId 
     ) -> dispatch::DispatchResult {
 
+        log::info!("--- Registration call here!");
+
         // --- Check the callers hotkey signature.
         ensure_signed(origin)?;
 
