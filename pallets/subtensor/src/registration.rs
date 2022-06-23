@@ -85,8 +85,8 @@ impl<T: Config> Pallet<T> {
                 let mut incentive_proportion: I65F63 = I65F63::from_num( neuron_i.incentive ) / I65F63::from_num( u64::MAX ); // Incentive proportion (0, 1)
 
                 // Multiply through proportions, this is how we weight between different components.
-                stake_proportion = stake_proportion * I65F63::from_num( 1 / Self::get_stake_pruning_denominator() );
-                incentive_proportion = incentive_proportion * I65F63::from_num( 1 / Self::get_incentive_pruning_denominator() );
+                stake_proportion = stake_proportion * I65F63::from_num( 1 ) / I65F63::from_num( Self::get_stake_pruning_denominator() );
+                incentive_proportion = incentive_proportion * I65F63::from_num( 1 ) / I65F63::from_num( Self::get_incentive_pruning_denominator() );
 
                 // Take max(stake_proportion, incentive_proportion).
                 let mut prunning_score;
