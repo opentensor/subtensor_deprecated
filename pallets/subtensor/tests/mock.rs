@@ -87,6 +87,7 @@ parameter_types! {
 	pub const InitialBondsMovingAverage: u64 = 500_000;
 	pub const InitialIncentivePruningDenominator: u64 = 1;
 	pub const InitialStakePruningDenominator: u64 = 1;
+	pub const InitialStakePruningMin: u64 = 0;
 	pub const InitialFoundationDistribution: u64 = 0;
 
 	pub const InitialValidatorBatchSize: u64 = 10;
@@ -199,6 +200,7 @@ impl pallet_subtensor::Config for Test {
 	type InitialBondsMovingAverage = InitialBondsMovingAverage;
 	type InitialMaxAllowedMaxMinRatio = InitialMaxAllowedMaxMinRatio;
 	type InitialStakePruningDenominator = InitialStakePruningDenominator;
+	type InitialStakePruningMin = InitialStakePruningMin;
 	type InitialIncentivePruningDenominator = InitialIncentivePruningDenominator;
 	type InitialFoundationDistribution = InitialFoundationDistribution;
 	type InitialIssuance = InitialIssuance;

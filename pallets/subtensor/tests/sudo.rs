@@ -153,6 +153,15 @@ fn test_sudo_stake_pruning_denominator() {
     });
 }
 
+#[test]
+fn test_sudo_stake_pruning_min() {
+	new_test_ext().execute_with(|| {
+        let stake_pruning_min: u64 = 10;
+		assert_ok!(Subtensor::sudo_set_stake_pruning_min(<<Test as Config>::Origin>::root(), stake_pruning_min));
+        assert_eq!(Subtensor::get_stake_pruning_min(), stake_pruning_min);
+    });
+}
+
 
 #[test]
 fn test_sudo_max_allowed_uids() {
@@ -362,6 +371,16 @@ fn test_fails_sudo_set_stake_pruning_denominator() {
         let init_stake_pruning_denominator: u64 = Subtensor::get_stake_pruning_denominator();
 		assert_eq!(Subtensor::sudo_set_stake_pruning_denominator(<<Test as Config>::Origin>::signed(0), stake_pruning_denominator),  Err(DispatchError::BadOrigin.into()));
         assert_eq!(Subtensor::get_stake_pruning_denominator(), init_stake_pruning_denominator);
+    });
+}
+
+#[test]
+fn test_fails_sudo_set_stake_pruning_min() {
+	new_test_ext().execute_with(|| {
+        let stake_pruning_min: u64 = 10;
+        let init_stake_pruning_min: u64 = Subtensor::get_stake_pruning_min();
+		assert_eq!(Subtensor::sudo_set_stake_pruning_min(<<Test as Config>::Origin>::signed(0), stake_pruning_min),  Err(DispatchError::BadOrigin.into()));
+        assert_eq!(Subtensor::get_stake_pruning_min(), init_stake_pruning_min);
     });
 }
 
