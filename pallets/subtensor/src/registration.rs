@@ -77,7 +77,7 @@ impl<T: Config> Pallet<T> {
                 // the min incentive proportion. 
                 // Calculate stake proportion with zero check.        
                 let mut stake_proportion: I65F63;
-                if Self::get_total_stake() == 0 {
+                if Self::get_total_stake() == 0 || neuron_i.stake <= Self::get_stake_pruning_min() {
                     stake_proportion = I65F63::from_num( u64::min_value() );
                 } else {
                     stake_proportion = I65F63::from_num( neuron_i.stake ) / I65F63::from_num( Self::get_total_stake() ); // Stake proportion (0, 1)

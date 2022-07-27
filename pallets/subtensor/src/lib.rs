@@ -118,6 +118,10 @@ pub mod pallet {
 		#[pallet::constant]
 		type InitialStakePruningDenominator: Get<u64>;
 
+		/// Initial stake pruning min
+		#[pallet::constant]
+		type InitialStakePruningMin: Get<u64>;
+
 		/// Initial incentive pruning denominator
 		#[pallet::constant]
 		type InitialIncentivePruningDenominator: Get<u64>;
@@ -331,6 +335,16 @@ pub mod pallet {
 		u64, 
 		ValueQuery,
 		DefaultStakePruningDenominator<T>
+	>;
+
+	#[pallet::type_value] 
+	pub fn DefaultStakePruningMin<T: Config>() -> u64 { T::InitialStakePruningMin::get() }
+	#[pallet::storage]
+	pub type StakePruningMin<T> = StorageValue<
+		_, 
+		u64, 
+		ValueQuery,
+		DefaultStakePruningMin<T>
 	>;
 
 	#[pallet::type_value] 
@@ -720,6 +734,9 @@ pub mod pallet {
 
 		/// --- Event created when the stake pruning denominator has been set.
 		StakePruningDenominatorSet( u64 ),
+
+		/// --- Event created when the stake pruning min has been set.
+		StakePruningMinSet( u64 ),
 
 		/// --- Event created when the foundation account has been set.
 		FoundationAccountSet( T::AccountId ),
@@ -1291,6 +1308,16 @@ pub mod pallet {
 			Ok(())
 		}
 
+		#[pallet::weight((0, DispatchClass::Operational, Pays::No))]
+		pub fn sudo_set_stake_pruning_min( 
+			origin:OriginFor<T>, 
+			stake_pruning_min: u64 
+		) -> DispatchResult {
+			ensure_root( origin )?;
+			StakePruningMin::<T>::set( stake_pruning_min );
+			Self::deposit_event( Event::StakePruningMinSet( stake_pruning_min ));
+			Ok(())
+		}
 
 		#[pallet::weight((0, DispatchClass::Operational, Pays::No))]
 		pub fn sudo_set_immunity_period ( 
@@ -1409,6 +1436,12 @@ pub mod pallet {
 		}
 		pub fn set_stake_pruning_denominator( stake_pruning_denominator: u64 ) {
 			StakePruningDenominator::<T>::put( stake_pruning_denominator );
+		}
+		pub fn get_stake_pruning_min( ) -> u64 {
+			return StakePruningMin::<T>::get();
+		}
+		pub fn set_stake_pruning_min( stake_pruning_min: u64 ) {
+			StakePruningMin::<T>::put( stake_pruning_min );
 		}
 
 		pub fn get_validator_sequence_length( ) -> u64 {
