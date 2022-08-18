@@ -9,7 +9,7 @@
 | **kappa**                          | 2         |
 | **maxAllowedMaxMinRatio**          | 10        |
 | **maxAllowedUids**                 | 4096      |
-| **minAllowedWeights**              | 600       |
+| **minAllowedWeights**              | 1200      |
 | **rho**                            | 10        |
 | **stakePruningDenominator**        | 20        |
 | **stakePruningMin**                | 300       |
