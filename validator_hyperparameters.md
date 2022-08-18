@@ -18,5 +18,4 @@
 | **validatorEpochLen**              | 250       |
 | **validatorEpochsPerReset**        | 60        |
 | **validatorSequenceLength**        | 64        |
-| ****                               |           |
 
