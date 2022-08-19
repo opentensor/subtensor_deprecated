@@ -7,7 +7,7 @@
 | **immunityPeriod**                 | 2048      |
 | **incentivePruningDenominator**    | 1         |
 | **kappa**                          | 2         |
-| **maxAllowedMaxMinRatio**          | 10        |
+| **maxAllowedMaxMinRatio**          | 64        |
 | **maxAllowedUids**                 | 4096      |
 | **minAllowedWeights**              | 600       |
 | **rho**                            | 10        |
