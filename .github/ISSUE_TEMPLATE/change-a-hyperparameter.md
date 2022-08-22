@@ -1,30 +1,20 @@
----
-name: Change a Validator Hyperparameter
-about: Suggest a change for the validator hyperparameters.
-title: ""
-labels: enhancement
-assignees: ""
----
+**Title**
 
-**What do you want to change?**
+Title of your change, formatted as BIT-xxxx where xxxx is the hyperparameter to be changed.
 
-Which Hyperparameter do you want to change?
+**Initial and Suggested values**
 
-**why do you think this change is needed?**
+Provide what the value of the hyperparameter is prior to your change, and after.
+
+**Abstract**
+
+Provide a brief description of the hyperparameter you wish to change, its impact, and why we're changing it. 
+
+**Motivation**
 
 Describe (in detail) why we need to change the value of this hyperparameter. 
 
-**Alternatives**
+**Specification**
 
-_Describe any alternative solutions or features you considered and why you believe your suggested
-solution is preferable._
-
-**When should this change take place?**
-
-When should we make the sudo call on the blockchain to make this change? Indicate if this a hotfix/urgent change or if it is an optimization.
-
-**Whom will this change impact, and how?**
-
-Will this change impact validators or servers? How will it impact them? Include as much detail as possible.
-
+What are you changing, and how does it affect the network as a whole.
 
