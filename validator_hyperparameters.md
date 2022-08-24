@@ -1,6 +1,6 @@
 | **Validator Hyperparameter**       | **Value** |
 |------------------------------------|-----------|
-| **adjustmentCutoff**               | 100       |
+| **activityCutoff. **               | 5000      |
 | **adjustmentInterval**             | 100       |
 | **blocksPerStep**                  | 100       |
 | **bondsMovingAverage**             | 900,000   |
