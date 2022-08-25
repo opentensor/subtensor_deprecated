@@ -15,7 +15,7 @@
 | **stakePruningMin**                | 512       |
 | **targetRegistrationsPerInterval** | 2         |
 | **validatorBatchSize**             | 32        |
-| **validatorEpochLen**              | 250       |
+| **validatorEpochLen**              | 350       |
 | **validatorEpochsPerReset**        | 60        |
 | **validatorSequenceLength**        | 64        |
 
