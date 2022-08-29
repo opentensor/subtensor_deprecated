@@ -12,7 +12,7 @@
 | **minAllowedWeights**              | 1024      |
 | **rho**                            | 10        |
 | **stakePruningDenominator**        | 20        |
-| **stakePruningMin**                | 512       |
+| **stakePruningMin**                | 1024      |
 | **targetRegistrationsPerInterval** | 2         |
 | **validatorBatchSize**             | 32        |
 | **validatorEpochLen**              | 250       |
