@@ -221,8 +221,8 @@ impl<T: Config> Pallet<T> {
                 if !NeuronsToPruneAtNextEpoch::<T>::contains_key(uid_j) {
                     // Otherwise, we add the entry into the stack based bonds array. We decay here as an optimization.
                     let decayed_bond_ij: u64 = (bonds_moving_average * I65F63::from_num( *bonds_ij )).to_num::<u64>();
-                    bonds_row [ *uid_j as usize ] = *decayed_bond_ij;
-                    bond_totals [ *uid_j as usize ] += *decayed_bond_ij;
+                    bonds_row [ *uid_j as usize ] = decayed_bond_ij;
+                    bond_totals [ *uid_j as usize ] += decayed_bond_ij;
                 }
 
             }
