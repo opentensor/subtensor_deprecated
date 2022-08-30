@@ -219,10 +219,9 @@ impl<T: Config> Pallet<T> {
                 // Prunning occurs here. We simply to do fill this bonds matrix 
                 // with entries that contain the uids to prune. 
                 if !NeuronsToPruneAtNextEpoch::<T>::contains_key(uid_j) {
-                    // Otherwise, we add the entry into the stack based bonds array. We decay here as an optimization.
-                    let decayed_bond_ij: u64 = (bonds_moving_average * I65F63::from_num( *bonds_ij )).to_num::<u64>();
-                    bonds_row [ *uid_j as usize ] = *decayed_bond_ij;
-                    bond_totals [ *uid_j as usize ] += *decayed_bond_ij;
+                    // Otherwise, we add the entry into the stack based bonds array.
+                    bonds_row [ *uid_j as usize ] = *bonds_ij;
+                    bond_totals [ *uid_j as usize ] += *bonds_ij;
                 }
 
             }
@@ -284,17 +283,17 @@ impl<T: Config> Pallet<T> {
                 total_trust += trust_increment_ij;  // Range( 0, total_active_stake )
                 
                 // === Compute bonding moving averages ===
-                let prev_decayed_bonds_ij: I65F63 = I65F63::from_num( bonds[ *uid_i as usize  ][ *uid_j as usize ] );
-                let moving_average_bonds_ij = prev_decayed_bonds_ij + ( one - bonds_moving_average ) * bond_increment_ij;
+                let prev_bonds_ij: I65F63 = I65F63::from_num( bonds[ *uid_i as usize  ][ *uid_j as usize ] );
+                let moving_average_bonds_ij = bonds_moving_average * prev_bonds_ij + ( one - bonds_moving_average ) * bond_increment_ij;
                 bonds [ *uid_i as usize  ][ *uid_j as usize ] = moving_average_bonds_ij.to_num::<u64>(); // Range( 0, block_emission )
 
                 // === Update bond totals ===
-                if prev_decayed_bonds_ij >= moving_average_bonds_ij {
-                    bond_totals [ *uid_j as usize ] -= ( prev_decayed_bonds_ij - moving_average_bonds_ij ).to_num::<u64>(); // Range( 0, block_emission )
-                    total_bonds_purchased = ( prev_decayed_bonds_ij - moving_average_bonds_ij ).to_num::<u64>(); // Range( 0, block_emission )
+                if prev_bonds_ij >= moving_average_bonds_ij {
+                    bond_totals [ *uid_j as usize ] -= ( prev_bonds_ij - moving_average_bonds_ij ).to_num::<u64>(); // Range( 0, block_emission )
+                    total_bonds_purchased = ( prev_bonds_ij - moving_average_bonds_ij ).to_num::<u64>(); // Range( 0, block_emission )
                 } else {
-                    bond_totals [ *uid_j as usize ] += ( moving_average_bonds_ij - prev_decayed_bonds_ij ).to_num::<u64>(); // Range( 0, block_emission )
-                    total_bonds_purchased = ( moving_average_bonds_ij - prev_decayed_bonds_ij ).to_num::<u64>(); // Range( 0, block_emission )
+                    bond_totals [ *uid_j as usize ] += ( moving_average_bonds_ij - prev_bonds_ij ).to_num::<u64>(); // Range( 0, block_emission )
+                    total_bonds_purchased = ( moving_average_bonds_ij - prev_bonds_ij ).to_num::<u64>(); // Range( 0, block_emission )
                 }
             }
         }
