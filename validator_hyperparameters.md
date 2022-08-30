@@ -1,6 +1,5 @@
 | **Validator Hyperparameter**       | **Value** |
 |------------------------------------|-----------|
-| **activityCutoff**                 | 5000      |
 | **adjustmentInterval**             | 100       |
 | **blocksPerStep**                  | 100       |
 | **bondsMovingAverage**             | 900,000   |
@@ -16,6 +15,5 @@
 | **targetRegistrationsPerInterval** | 2         |
 | **validatorBatchSize**             | 32        |
 | **validatorEpochLen**              | 250       |
-| **validatorEpochsPerReset**        | 60        |
 | **validatorSequenceLength**        | 64        |
 
