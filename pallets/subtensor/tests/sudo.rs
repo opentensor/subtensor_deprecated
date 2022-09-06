@@ -162,6 +162,15 @@ fn test_sudo_stake_pruning_min() {
     });
 }
 
+#[test]
+fn test_sudo_max_clip_value() {
+	new_test_ext().execute_with(|| {
+        let max_clip_value: u32 = 10;
+		assert_ok!(Subtensor::sudo_set_max_clip_value(<<Test as Config>::Origin>::root(), max_clip_value));
+        assert_eq!(Subtensor::get_max_clip_value(), max_clip_value);
+    });
+}
+
 
 #[test]
 fn test_sudo_max_allowed_uids() {
@@ -381,6 +390,16 @@ fn test_fails_sudo_set_stake_pruning_min() {
         let init_stake_pruning_min: u64 = Subtensor::get_stake_pruning_min();
 		assert_eq!(Subtensor::sudo_set_stake_pruning_min(<<Test as Config>::Origin>::signed(0), stake_pruning_min),  Err(DispatchError::BadOrigin.into()));
         assert_eq!(Subtensor::get_stake_pruning_min(), init_stake_pruning_min);
+    });
+}
+
+#[test]
+fn test_fails_sudo_max_clip_value() {
+	new_test_ext().execute_with(|| {
+        let max_clip_value: u32 = 10;
+        let init_max_clip_value: u32 = Subtensor::get_max_clip_value();
+		assert_eq!(Subtensor::sudo_set_max_clip_value(<<Test as Config>::Origin>::signed(0), max_clip_value),  Err(DispatchError::BadOrigin.into()));
+        assert_eq!(Subtensor::get_max_clip_value(), init_max_clip_value);
     });
 }
 

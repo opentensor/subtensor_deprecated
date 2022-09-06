@@ -114,6 +114,10 @@ pub mod pallet {
 		#[pallet::constant]
 		type InitialMaxAllowedMaxMinRatio: Get<u64>;
 
+		/// Initial allowed max clip value.
+		#[pallet::constant]
+		type InitialMaxClipValue: Get<u32>;
+
 		/// Initial stake pruning denominator
 		#[pallet::constant]
 		type InitialStakePruningDenominator: Get<u64>;
@@ -416,6 +420,16 @@ pub mod pallet {
 		u64, 
 		ValueQuery,
 		DefaultMaxAllowedMaxMinRatio<T>
+	>;
+
+	#[pallet::type_value] 
+	pub fn DefaultMaxClipValue<T: Config>() -> u32 { T::InitialMaxClipValue::get() }
+	#[pallet::storage]
+	pub type MaxClipValue<T> = StorageValue<
+		_, 
+		u32, 
+		ValueQuery,
+		DefaultMaxClipValue<T>
 	>;
 
 	#[pallet::type_value] 
@@ -729,6 +743,9 @@ pub mod pallet {
 		/// --- Event created when the max allowed max min ration has been set.
 		MaxAllowedMaxMinRatioSet( u64 ),
 
+		/// --- Event created when the max clip value has been set.
+		MaxClipValueSet( u32 ),
+
 		/// --- Event created when the incentive pruning denominator has been set.
 		IncentivePruningDenominatorSet( u64 ),
 
@@ -841,6 +858,10 @@ pub mod pallet {
 		/// ---- Thrown when the dispatch attempts to set weights on chain with where the normalized
 		/// max value is more than MaxAllowedMaxMinRatio.
 		MaxAllowedMaxMinRatioExceeded,
+
+		/// ---- Thrown when the dispatch attempts to set weights on chain with where the normalized
+		/// max value is more than MaxClipValue.
+		MaxClipExceeded,
 
 		/// ---- Thrown when the caller attempts to use a repeated work.
 		WorkRepeated,
@@ -1243,6 +1264,17 @@ pub mod pallet {
 		}
 
 		#[pallet::weight((0, DispatchClass::Operational, Pays::No))]
+		pub fn sudo_set_max_clip_value ( 
+			origin:OriginFor<T>, 
+			max_clip_value: u32 
+		) -> DispatchResult {
+			ensure_root( origin )?;
+			MaxClipValue::<T>::set( max_clip_value );
+			Self::deposit_event( Event::MaxClipValueSet( max_clip_value ) );
+			Ok(())
+		}
+
+		#[pallet::weight((0, DispatchClass::Operational, Pays::No))]
 		pub fn sudo_set_validator_batch_size ( 
 			origin:OriginFor<T>, 
 			validator_batch_size: u64 
@@ -1499,6 +1531,12 @@ pub mod pallet {
 		}
 		pub fn set_max_allowed_max_min_ratio( max_allowed_max_min_ratio: u64 ) {
 			MaxAllowedMaxMinRatio::<T>::put( max_allowed_max_min_ratio );
+		}
+		pub fn get_max_clip_value( ) -> u32 {
+			return MaxClipValue::<T>::get();
+		}
+		pub fn set_max_clip_value( max_clip_value: u32 ) {
+			MaxClipValue::<T>::put( max_clip_value );
 		}
 		pub fn get_immunity_period( ) -> u64 {
 			return ImmunityPeriod::<T>::get();

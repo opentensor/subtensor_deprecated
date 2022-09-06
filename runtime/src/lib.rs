@@ -98,7 +98,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	//   `spec_version`, and `authoring_version` are the same between Wasm and native.
 	// This value is set to 100 to notify Polkadot-JS App (https://polkadot.js.org/apps) to use
 	//   the compatible custom types.
-	spec_version: 109,
+	spec_version: 110,
 	impl_version: 1,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 1,
@@ -280,6 +280,7 @@ parameter_types! {
 	pub const InitialMaxAllowedUids: u64 = 2000;
 	pub const InitialMinAllowedWeights: u64 = 1;
 	pub const InitialMaxAllowedMaxMinRatio: u64 = 10;
+	pub const InitialMaxClipValue: u32 = u32::MAX;
 	pub const InitialIssuance: u64 = 548833985028256;
 	pub const InitialBondsMovingAverage: u64 = 900_000;
 	pub const InitialIncentivePruningDenominator: u64 = 1;
@@ -313,6 +314,7 @@ impl pallet_subtensor::Config for Runtime {
 	type InitialMinAllowedWeights = InitialMinAllowedWeights;
 	type InitialBondsMovingAverage = InitialBondsMovingAverage;
 	type InitialMaxAllowedMaxMinRatio = InitialMaxAllowedMaxMinRatio;
+	type InitialMaxClipValue = InitialMaxClipValue;
 	type InitialStakePruningDenominator = InitialStakePruningDenominator;
 	type InitialStakePruningMin = InitialStakePruningMin;
 	type InitialIncentivePruningDenominator = InitialIncentivePruningDenominator;

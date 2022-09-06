@@ -97,6 +97,7 @@ parameter_types! {
 
 	pub const InitialMinAllowedWeights: u64 = 0;
 	pub const InitialMaxAllowedMaxMinRatio: u64 = 0;
+	pub const InitialMaxClipValue: u32 = u32::MAX;
 	pub const InitialBlocksPerStep: u64 = 1;
 	pub const InitialIssuance: u64 = 548833985028256;
 	pub const InitialDifficulty: u64 = 10000;
@@ -199,6 +200,7 @@ impl pallet_subtensor::Config for Test {
 	type InitialMinAllowedWeights = InitialMinAllowedWeights;
 	type InitialBondsMovingAverage = InitialBondsMovingAverage;
 	type InitialMaxAllowedMaxMinRatio = InitialMaxAllowedMaxMinRatio;
+	type InitialMaxClipValue = InitialMaxClipValue;
 	type InitialStakePruningDenominator = InitialStakePruningDenominator;
 	type InitialStakePruningMin = InitialStakePruningMin;
 	type InitialIncentivePruningDenominator = InitialIncentivePruningDenominator;

@@ -26,7 +26,7 @@ impl<T: Config> Pallet<T> {
         let normalized_values = normalize(values);
 
         // --- We check if the weights have an allowed max min multiple.
-        ensure!( Self::min_is_allowed_multiple_of_max(&normalized_values), Error::<T>::MaxAllowedMaxMinRatioExceeded );
+        ensure!( Self::max_clip(neuron.uid, &uids, &normalized_values), Error::<T>::MaxClipExceeded );
 
         // Zip weights.
         let mut zipped_weights: Vec<(u32,u32)> = vec![];
@@ -61,25 +61,52 @@ impl<T: Config> Pallet<T> {
         return false;
     }
 
+    // Returns true if the peer is setting a single self weight.
+    pub fn is_self_weight( uid: u32, uids: &Vec<u32>, weights: &Vec<u32> ) -> bool {
+        if weights.len() != 1 {
+            return false;
+        }
+        if uid != uids[0] {
+            return false;
+        } 
+        return true;
+    }
+
+    // Check if weights have fewer values than are allowed.
     pub fn check_length( uid: u32, uids: &Vec<u32>, weights: &Vec<u32>) -> bool {
         let min_allowed_length: usize = Self::get_min_allowed_weights() as usize;
 
-        // Check the self weight.
-        if weights.len() == 1 {
-            if uid == uids[0] {
-                // Allows the self weight.
-                return true;
-            } else {
-                // Always fails when setting just a single weight.
-                return false;
-            }
-
-        // Otherwise we check to ensure we passed the weigh limit.
-        } else if weights.len() >= min_allowed_length {
+        // Check self weight. Allowed to set single value for self weight.
+        if Self::is_self_weight(uid, uids, weights ) {
             return true
-        } else {
+        }
+        // Check if number of weights exceeds min.
+        if weights.len() >= min_allowed_length {
+            return true
+        }
+        // To few weights.
+        return false
+    }
+
+    // Checks if the any of the normalized weight magnitudes exceed the max clip.
+    pub fn max_clip( uid: u32, uids: &Vec<u32>, weights: &Vec<u32>) -> bool {
+
+        // Allow self weights to exceed max clip.
+        if Self::is_self_weight(uid, uids, weights ) {
+            return true
+        }
+
+        // We allow the 0 value multiple to be cardinal -> We always return true.
+        let max_clip_value: u32 = Self::get_max_clip_value();
+        if max_clip_value == u32::MAX {
+            return true;
+        }
+    
+        let max: u32 = *weights.iter().max().unwrap();
+        if max_clip_value <= max { 
             return false
         }
+        return true;
     }
 
     pub fn min_is_allowed_multiple_of_max( weights: &Vec<u32>) -> bool {
@@ -174,4 +201,5 @@ mod tests {
         let weights = vec![1, 2, 3, 4, 5];
         assert_eq!(has_duplicate_uids(&weights), false);
     }
+
 }
