@@ -121,7 +121,7 @@ fn test_weights_err_has_duplicate_ids() {
 }
 
 #[test]
-fn test_weights_err_max_clip_value() {
+fn test_weights_err_max_weight_value() {
 	new_test_ext().execute_with(|| {
 		let _neuron = register_ok_neuron( 0, 0);
 		run_to_block( 2 );
@@ -133,13 +133,13 @@ fn test_weights_err_max_clip_value() {
 		run_to_block( 5 );
     	let _neuron = register_ok_neuron( 4, 4);
 
-		Subtensor::set_max_clip_value(u32::MAX/5); // Set max to u32::MAX/2
+		Subtensor::set_max_weight_value(u32::MAX/5); // Set max to u32::MAX/2
 
 		// Non self weight fails.
 		let weights_keys: Vec<u32> = vec![1, 2, 3, 4]; 
 		let weight_values: Vec<u32> = vec![1, 1, 1, 1]; // normalizes to u32::MAX/2
 		let result = Subtensor::set_weights(Origin::signed(0), weights_keys, weight_values);
-		assert_eq!(result, Err(Error::<Test>::MaxClipExceeded.into()));
+		assert_eq!(result, Err(Error::<Test>::MaxWeightExceeded.into()));
 
 		// Self weight is a success.
 		let weights_keys: Vec<u32> = vec![0]; 
