@@ -163,11 +163,11 @@ fn test_sudo_stake_pruning_min() {
 }
 
 #[test]
-fn test_sudo_max_weight_value() {
+fn test_sudo_max_weight_limit() {
 	new_test_ext().execute_with(|| {
-        let max_weight_value: u32 = 10;
-		assert_ok!(Subtensor::sudo_set_max_weight_value(<<Test as Config>::Origin>::root(), max_weight_value));
-        assert_eq!(Subtensor::get_max_weight_value(), max_weight_value);
+        let max_weight_limit: u32 = 10;
+		assert_ok!(Subtensor::sudo_set_max_weight_limit(<<Test as Config>::Origin>::root(), max_weight_limit));
+        assert_eq!(Subtensor::get_max_weight_limit(), max_weight_limit);
     });
 }
 
@@ -394,12 +394,12 @@ fn test_fails_sudo_set_stake_pruning_min() {
 }
 
 #[test]
-fn test_fails_sudo_max_weight_value() {
+fn test_fails_sudo_max_weight_limit() {
 	new_test_ext().execute_with(|| {
-        let max_weight_value: u32 = 10;
-        let init_max_weight_value: u32 = Subtensor::get_max_weight_value();
-		assert_eq!(Subtensor::sudo_set_max_weight_value(<<Test as Config>::Origin>::signed(0), max_weight_value),  Err(DispatchError::BadOrigin.into()));
-        assert_eq!(Subtensor::get_max_weight_value(), init_max_weight_value);
+        let max_weight_limit: u32 = 10;
+        let init_max_weight_limit: u32 = Subtensor::get_max_weight_limit();
+		assert_eq!(Subtensor::sudo_set_max_weight_limit(<<Test as Config>::Origin>::signed(0), max_weight_limit),  Err(DispatchError::BadOrigin.into()));
+        assert_eq!(Subtensor::get_max_weight_limit(), init_max_weight_limit);
     });
 }
 
