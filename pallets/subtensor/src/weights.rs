@@ -26,7 +26,7 @@ impl<T: Config> Pallet<T> {
         let normalized_values = normalize(values);
 
         // --- We check if the weights do not exceed the max weight limit.
-        ensure!( Self::max_weight(neuron.uid, &uids, &normalized_values), Error::<T>::MaxWeightExceeded);
+        ensure!( Self::max_weight(neuron.uid, &uids, &normalized_values), Error::<T>::MaxWeightExceeded );
 
         // Zip weights.
         let mut zipped_weights: Vec<(u32,u32)> = vec![];
