@@ -18,6 +18,6 @@
 | **validatorEpochLen**              | 250                  |
 | **validatorEpochsPerReset**        | 60                   |
 | **validatorSequenceLength**        | 64                   |
-| **maxClipValue**                   | 4_294_967_295        |
+| **MaxWeightLimit**                 | 4_294_967_295        |
 
 
