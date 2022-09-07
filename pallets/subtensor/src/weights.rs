@@ -88,7 +88,7 @@ impl<T: Config> Pallet<T> {
         return false;
     }
 
-    // Checks if the any of the normalized weight magnitudes exceed the max weight limit.
+    // Checks if none of the normalized weight magnitudes exceed the max weight limit.
     pub fn max_weight_limited( uid: u32, uids: &Vec<u32>, weights: &Vec<u32> ) -> bool {
 
         // Allow self weights to exceed max weight limit.
