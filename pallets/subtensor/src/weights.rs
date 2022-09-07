@@ -25,8 +25,8 @@ impl<T: Config> Pallet<T> {
         // Normalize weights.
         let normalized_values = normalize(values);
 
-        // --- We check if the weights have an allowed max min multiple.
-        ensure!( Self::max_weight(neuron.uid, &uids, &normalized_values), Error::<T>::MaxWeightExceeded );
+        // --- We check if the weights do not exceed the max weight limit.
+        ensure!( Self::max_weight(neuron.uid, &uids, &normalized_values), Error::<T>::MaxWeightExceeded);
 
         // Zip weights.
         let mut zipped_weights: Vec<(u32,u32)> = vec![];
@@ -77,7 +77,7 @@ impl<T: Config> Pallet<T> {
         let min_allowed_length: usize = Self::get_min_allowed_weights() as usize;
 
         // Check self weight. Allowed to set single value for self weight.
-        if Self::is_self_weight(uid, uids, weights ) {
+        if Self::is_self_weight(uid, uids, weights) {
             return true
         }
         // Check if number of weights exceeds min.
@@ -88,15 +88,14 @@ impl<T: Config> Pallet<T> {
         return false
     }
 
-    // Checks if the any of the normalized weight magnitudes exceed the max clip.
+    // Checks if the any of the normalized weight magnitudes exceed the max weight limit.
     pub fn max_weight( uid: u32, uids: &Vec<u32>, weights: &Vec<u32>) -> bool {
 
-        // Allow self weights to exceed max clip.
-        if Self::is_self_weight(uid, uids, weights ) {
+        // Allow self weights to exceed max weight limit.
+        if Self::is_self_weight(uid, uids, weights) {
             return true
         }
 
-        // We allow the 0 value multiple to be cardinal -> We always return true.
         let max_weight_value: u32 = Self::get_max_weight_value();
         if max_weight_value == u32::MAX {
             return true;
