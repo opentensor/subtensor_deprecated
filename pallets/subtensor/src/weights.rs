@@ -88,10 +88,10 @@ impl<T: Config> Pallet<T> {
         return false
     }
 
-    // Checks if the any of the normalized weight magnitudes exceed the max clip.
+    // Checks if the any of the normalized weight magnitudes exceed the max weight.
     pub fn max_weight( uid: u32, uids: &Vec<u32>, weights: &Vec<u32>) -> bool {
 
-        // Allow self weights to exceed max clip.
+        // Allow self weights to exceed max weight.
         if Self::is_self_weight(uid, uids, weights ) {
             return true
         }
