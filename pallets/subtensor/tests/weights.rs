@@ -143,7 +143,7 @@ fn test_weights_err_max_weight_limit() {
 
 		// Self weight is a success.
 		let weights_keys: Vec<u32> = vec![0]; 
-		let weight_values: Vec<u32> = vec![1]; // normalizes to u32::MAX/2
+		let weight_values: Vec<u32> = vec![1]; // normalizes to u32::MAX
 		assert_ok!(Subtensor::set_weights(Origin::signed(0), weights_keys, weight_values));
 	});
 }
