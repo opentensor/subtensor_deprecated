@@ -25,8 +25,8 @@ impl<T: Config> Pallet<T> {
         // Normalize weights.
         let normalized_values = normalize(values);
 
-        // --- We check if the weights have an allowed max min multiple.
-        ensure!( Self::max_weight(neuron.uid, &uids, &normalized_values), Error::<T>::MaxWeightExceeded );
+        // --- We check if the weights do not exceed the max weight limit.
+        ensure!( Self::max_weight_limited(neuron.uid, &uids, &normalized_values), Error::<T>::MaxWeightExceeded );
 
         // Zip weights.
         let mut zipped_weights: Vec<(u32,u32)> = vec![];
@@ -73,40 +73,39 @@ impl<T: Config> Pallet<T> {
     }
 
     // Check if weights have fewer values than are allowed.
-    pub fn check_length( uid: u32, uids: &Vec<u32>, weights: &Vec<u32>) -> bool {
+    pub fn check_length( uid: u32, uids: &Vec<u32>, weights: &Vec<u32> ) -> bool {
         let min_allowed_length: usize = Self::get_min_allowed_weights() as usize;
 
         // Check self weight. Allowed to set single value for self weight.
-        if Self::is_self_weight(uid, uids, weights ) {
-            return true
+        if Self::is_self_weight(uid, uids, weights) {
+            return true;
         }
         // Check if number of weights exceeds min.
         if weights.len() >= min_allowed_length {
-            return true
+            return true;
         }
         // To few weights.
-        return false
+        return false;
     }
 
-    // Checks if the any of the normalized weight magnitudes exceed the max weight.
-    pub fn max_weight( uid: u32, uids: &Vec<u32>, weights: &Vec<u32>) -> bool {
+    // Checks if none of the normalized weight magnitudes exceed the max weight limit.
+    pub fn max_weight_limited( uid: u32, uids: &Vec<u32>, weights: &Vec<u32> ) -> bool {
 
-        // Allow self weights to exceed max weight.
-        if Self::is_self_weight(uid, uids, weights ) {
-            return true
+        // Allow self weights to exceed max weight limit.
+        if Self::is_self_weight(uid, uids, weights) {
+            return true;
         }
 
-        // We allow the 0 value multiple to be cardinal -> We always return true.
-        let max_weight_value: u32 = Self::get_max_weight_value();
-        if max_weight_value == u32::MAX {
+        let max_weight_limit: u32 = Self::get_max_weight_limit();
+        if max_weight_limit == u32::MAX {
             return true;
         }
     
         let max: u32 = *weights.iter().max().unwrap();
-        if max_weight_value <= max { 
-            return false
+        if max <= max_weight_limit { 
+            return true;
         }
-        return true;
+        return false;
     }
 
     pub fn min_is_allowed_multiple_of_max( weights: &Vec<u32>) -> bool {
@@ -119,7 +118,7 @@ impl<T: Config> Pallet<T> {
         let min: u32 = *weights.iter().min().unwrap();
         let max: u32 = *weights.iter().max().unwrap();
         if min == 0 { 
-            return false
+            return false;
         } else {
             // Check that the min is a allowed multiple of the max.
             if max / min > max_allowed_max_min_ratio {

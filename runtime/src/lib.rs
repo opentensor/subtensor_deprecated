@@ -280,7 +280,7 @@ parameter_types! {
 	pub const InitialMaxAllowedUids: u64 = 2000;
 	pub const InitialMinAllowedWeights: u64 = 1;
 	pub const InitialMaxAllowedMaxMinRatio: u64 = 10;
-	pub const InitialMaxWeightValue: u32 = u32::MAX;
+	pub const InitialMaxWeightLimit: u32 = u32::MAX;
 	pub const InitialIssuance: u64 = 548833985028256;
 	pub const InitialBondsMovingAverage: u64 = 900_000;
 	pub const InitialIncentivePruningDenominator: u64 = 1;
@@ -314,7 +314,7 @@ impl pallet_subtensor::Config for Runtime {
 	type InitialMinAllowedWeights = InitialMinAllowedWeights;
 	type InitialBondsMovingAverage = InitialBondsMovingAverage;
 	type InitialMaxAllowedMaxMinRatio = InitialMaxAllowedMaxMinRatio;
-	type InitialMaxWeightValue = InitialMaxWeightValue;
+	type InitialMaxWeightLimit = InitialMaxWeightLimit;
 	type InitialStakePruningDenominator = InitialStakePruningDenominator;
 	type InitialStakePruningMin = InitialStakePruningMin;
 	type InitialIncentivePruningDenominator = InitialIncentivePruningDenominator;

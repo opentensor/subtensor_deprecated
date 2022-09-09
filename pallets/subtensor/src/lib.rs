@@ -114,9 +114,9 @@ pub mod pallet {
 		#[pallet::constant]
 		type InitialMaxAllowedMaxMinRatio: Get<u64>;
 
-		/// Initial allowed max weight value.
+		/// Initial max weight limit.
 		#[pallet::constant]
-		type InitialMaxWeightValue: Get<u32>;
+		type InitialMaxWeightLimit: Get<u32>;
 
 		/// Initial stake pruning denominator
 		#[pallet::constant]
@@ -423,13 +423,13 @@ pub mod pallet {
 	>;
 
 	#[pallet::type_value] 
-	pub fn DefaultMaxWeightValue<T: Config>() -> u32 { T::InitialMaxWeightValue::get() }
+	pub fn DefaultMaxWeightLimit<T: Config>() -> u32 { T::InitialMaxWeightLimit::get() }
 	#[pallet::storage]
-	pub type MaxWeightValue<T> = StorageValue<
+	pub type MaxWeightLimit<T> = StorageValue<
 		_, 
 		u32, 
 		ValueQuery,
-		DefaultMaxWeightValue<T>
+		DefaultMaxWeightLimit<T>
 	>;
 
 	#[pallet::type_value] 
@@ -743,8 +743,8 @@ pub mod pallet {
 		/// --- Event created when the max allowed max min ration has been set.
 		MaxAllowedMaxMinRatioSet( u64 ),
 
-		/// --- Event created when the max weight value has been set.
-		MaxWeightValueSet( u32 ),
+		/// --- Event created when the max weight limit has been set.
+		MaxWeightLimitSet( u32 ),
 
 		/// --- Event created when the incentive pruning denominator has been set.
 		IncentivePruningDenominatorSet( u64 ),
@@ -859,8 +859,8 @@ pub mod pallet {
 		/// max value is more than MaxAllowedMaxMinRatio.
 		MaxAllowedMaxMinRatioExceeded,
 
-		/// ---- Thrown when the dispatch attempts to set weights on chain with where the normalized
-		/// max value is more than MaxWeightValue.
+		/// ---- Thrown when the dispatch attempts to set weights on chain with where any normalized
+		/// weight is more than MaxWeightLimit.
 		MaxWeightExceeded,
 
 		/// ---- Thrown when the caller attempts to use a repeated work.
@@ -1264,13 +1264,13 @@ pub mod pallet {
 		}
 
 		#[pallet::weight((0, DispatchClass::Operational, Pays::No))]
-		pub fn sudo_set_max_weight_value ( 
+		pub fn sudo_set_max_weight_limit ( 
 			origin:OriginFor<T>, 
-			max_weight_value: u32 
+			max_weight_limit: u32 
 		) -> DispatchResult {
 			ensure_root( origin )?;
-			MaxWeightValue::<T>::set( max_weight_value );
-			Self::deposit_event( Event::MaxWeightValueSet( max_weight_value ) );
+			MaxWeightLimit::<T>::set( max_weight_limit );
+			Self::deposit_event( Event::MaxWeightLimitSet( max_weight_limit ) );
 			Ok(())
 		}
 
@@ -1532,11 +1532,11 @@ pub mod pallet {
 		pub fn set_max_allowed_max_min_ratio( max_allowed_max_min_ratio: u64 ) {
 			MaxAllowedMaxMinRatio::<T>::put( max_allowed_max_min_ratio );
 		}
-		pub fn get_max_weight_value( ) -> u32 {
-			return MaxWeightValue::<T>::get();
+		pub fn get_max_weight_limit( ) -> u32 {
+			return MaxWeightLimit::<T>::get();
 		}
-		pub fn set_max_weight_value( max_weight_value: u32 ) {
-			MaxWeightValue::<T>::put( max_weight_value );
+		pub fn set_max_weight_limit( max_weight_limit: u32 ) {
+			MaxWeightLimit::<T>::put( max_weight_limit );
 		}
 		pub fn get_immunity_period( ) -> u64 {
 			return ImmunityPeriod::<T>::get();

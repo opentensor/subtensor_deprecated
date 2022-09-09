@@ -121,7 +121,7 @@ fn test_weights_err_has_duplicate_ids() {
 }
 
 #[test]
-fn test_weights_err_max_weight_value() {
+fn test_weights_err_max_weight_limit() {
 	new_test_ext().execute_with(|| {
 		let _neuron = register_ok_neuron( 0, 0);
 		run_to_block( 2 );
@@ -133,7 +133,7 @@ fn test_weights_err_max_weight_value() {
 		run_to_block( 5 );
     	let _neuron = register_ok_neuron( 4, 4);
 
-		Subtensor::set_max_weight_value(u32::MAX/5); // Set max to u32::MAX/5
+		Subtensor::set_max_weight_limit(u32::MAX/5); // Set max to u32::MAX/5
 
 		// Non self weight fails.
 		let weights_keys: Vec<u32> = vec![1, 2, 3, 4]; 
