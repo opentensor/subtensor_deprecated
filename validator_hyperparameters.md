@@ -17,7 +17,5 @@
 | **validatorBatchSize**             | 32                   |
 | **validatorEpochLen**              | 250                  |
 | **validatorEpochsPerReset**        | 60                   |
-| **validatorSequenceLength**        | 64                   |
+| **validatorSequenceLength**        | 128                  |
 | **MaxWeightLimit**                 | 4_294_967_295        |
-
-
