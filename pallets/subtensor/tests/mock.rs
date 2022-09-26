@@ -197,6 +197,10 @@ impl pallet_subtensor::Config for Test {
 	type InitialValidatorSequenceLen = InitialValidatorSequenceLen;
 	type InitialValidatorEpochLen = InitialValidatorEpochLen;
 	type InitialValidatorEpochsPerReset = InitialValidatorEpochsPerReset;
+	
+	type InitialScalingLawPower = InitialScalingLawPower;
+	type InitialSynergyScalingLawPower = InitialSynergyScalingLawPower;
+	type InitialValidatorExcludeQuantile = InitialValidatorExcludeQuantile;
 
 	type InitialImmunityPeriod = InitialImmunityPeriod;
 	type InitialMaxAllowedUids = InitialMaxAllowedUids;
@@ -216,10 +220,6 @@ impl pallet_subtensor::Config for Test {
 	type InitialAdjustmentInterval = InitialAdjustmentInterval;
 	type InitialMaxRegistrationsPerBlock = InitialMaxRegistrationsPerBlock;
 	type InitialTargetRegistrationsPerInterval = InitialTargetRegistrationsPerInterval;
-
-	type InitialScalingLawPower = InitialScalingLawPower;
-	type InitialSynergyScalingLawPower = InitialSynergyScalingLawPower;
-	type InitialValidatorExcludeQuantile = InitialValidatorExcludeQuantile;
 
 }
 

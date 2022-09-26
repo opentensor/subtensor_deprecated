@@ -275,6 +275,12 @@ parameter_types! {
 	pub const InitialValidatorSequenceLen: u64 = 10;
 	pub const InitialValidatorEpochLen: u64 = 1000;
 	pub const InitialValidatorEpochsPerReset: u64 = 10;
+	
+	// u8 where value (x) represents x * 10^-2
+	pub const InitialScalingLawPower: u8 = 50; // 0.5
+	pub const InitialSynergyScalingLawPower: u8 = 60; // 0.6
+	pub const InitialValidatorExcludeQuantile: u8 = 10; // 0.1
+
 	pub const InitialImmunityPeriod: u64 = 200;
 	pub const InitialBlocksPerStep: u64 = 100;
 	pub const InitialMaxAllowedUids: u64 = 2000;
@@ -293,10 +299,6 @@ parameter_types! {
 	pub const InitialAdjustmentInterval: u64 = 100;
 	pub const InitialMaxRegistrationsPerBlock: u64 = 2;
 	pub const InitialTargetRegistrationsPerInterval: u64 = 2;
-	// u8 where value represents x * 10^-2
-	pub const InitialScalingLawPower: u8 = 50; // 0.5
-	pub const InitialSynergyScalingLawPower: u8 = 60; // 0.6
-	pub const InitialValidatorExcludeQuantile: u8 = 10; // 0.1
 }
 
 /// Configure the pallet-template in pallets/template.
