@@ -896,6 +896,9 @@ pub mod pallet {
 
 		/// ---- Thrown when the caller attempts to use a repeated work.
 		WorkRepeated,
+
+		/// ---- Thrown when the caller attempts to set a storage value outside of its allowed range.
+		StorageValueOutOfRange,
 	}
 
 	impl<T: Config> Printable for Error<T> {
@@ -905,6 +908,7 @@ pub mod pallet {
                 Error::NotRegistered  => "The node with the supplied public key is not registered".print(),
                 Error::WeightVecNotEqualSize => "The vec of keys and the vec of values are not of the same size".print(),
                 Error::NonAssociatedColdKey => "The used cold key is not associated with the hot key acccount".print(),
+				Error::StorageValueOutOfRange => "The supplied storage value is outside of its allowed range".print(),
                 _ => "Invalid Error Case".print(),
             }
         }
@@ -1398,6 +1402,7 @@ pub mod pallet {
 			scaling_law_power: u8 
 		) -> DispatchResult {
 			ensure_root( origin )?;
+			ensure!( scaling_law_power <= 100, Error::<T>::StorageValueOutOfRange  ); // The power must be between 0 and 100 => 0% and 100%
 			ScalingLawPower::<T>::set( scaling_law_power );
 			Self::deposit_event( Event::ScalingLawPowerSet( scaling_law_power ));
 			Ok(())
@@ -1409,6 +1414,7 @@ pub mod pallet {
 			synergy_scaling_law_power: u8 
 		) -> DispatchResult {
 			ensure_root( origin )?;
+			ensure!( synergy_scaling_law_power <= 100, Error::<T>::StorageValueOutOfRange ); // The power must be between 0 and 100 => 0% and 100%
 		    SynergyScalingLawPower::<T>::set( synergy_scaling_law_power );
 			Self::deposit_event( Event::SynergyScalingLawPowerSet( synergy_scaling_law_power ));
 			Ok(())
@@ -1420,6 +1426,7 @@ pub mod pallet {
 			validator_exclude_quantile: u8 
 		) -> DispatchResult {
 			ensure_root( origin )?;
+			ensure!( validator_exclude_quantile <= 100, Error::<T>::StorageValueOutOfRange ); // The quantile must be between 0 and 100 => 0% and 100%
 		    ValidatorExcludeQuantile::<T>::set( validator_exclude_quantile );
 			Self::deposit_event( Event::ValidatorExcludeQuantileSet( validator_exclude_quantile ));
 			Ok(())
