@@ -238,6 +238,25 @@ fn test_sudo_scaling_law_power() {
     });
 }
 
+#[test]
+fn test_sudo_synergy_scaling_law_power() {
+	new_test_ext().execute_with(|| {
+        let synergy_scaling_law_power: u8 = 10;
+		assert_ok!(Subtensor::sudo_set_synergy_scaling_law_power(<<Test as Config>::Origin>::root(), synergy_scaling_law_power));
+        assert_eq!(Subtensor::get_synergy_scaling_law_power(), synergy_scaling_law_power);
+    });
+}
+
+#[test]
+fn test_sudo_validator_exclude_quantile() {
+	new_test_ext().execute_with(|| {
+        let validator_exclude_quantile: u8 = 10;
+		assert_ok!(Subtensor::sudo_set_validator_exclude_quantile(<<Test as Config>::Origin>::root(), validator_exclude_quantile));
+        assert_eq!(Subtensor::get_validator_exclude_quantile(), validator_exclude_quantile);
+    });
+}
+
+
 //#########################
 //## sudo failure tests ###
 //#########################
