@@ -293,6 +293,10 @@ parameter_types! {
 	pub const InitialAdjustmentInterval: u64 = 100;
 	pub const InitialMaxRegistrationsPerBlock: u64 = 2;
 	pub const InitialTargetRegistrationsPerInterval: u64 = 2;
+	// u8 where value represents x * 10^-2
+	pub const InitialScalingLawPower: u8 = 50; // 0.5
+	pub const InitialSynergyScalingLawPower: u8 = 60; // 0.6
+	pub const InitialValidatorExcludeQuantile: u8 = 10; // 0.1
 }
 
 /// Configure the pallet-template in pallets/template.
