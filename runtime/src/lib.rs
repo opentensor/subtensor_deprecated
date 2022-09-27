@@ -314,6 +314,11 @@ impl pallet_subtensor::Config for Runtime {
 	type InitialValidatorSequenceLen = InitialValidatorSequenceLen;
 	type InitialValidatorEpochLen = InitialValidatorEpochLen;
 	type InitialValidatorEpochsPerReset = InitialValidatorEpochsPerReset;
+
+	type InitialScalingLawPower = InitialScalingLawPower;
+	type InitialSynergyScalingLawPower = InitialSynergyScalingLawPower;
+	type InitialValidatorExcludeQuantile = InitialValidatorExcludeQuantile;
+
 	type InitialImmunityPeriod = InitialImmunityPeriod;
 	type InitialMaxAllowedUids = InitialMaxAllowedUids;
 	type InitialMinAllowedWeights = InitialMinAllowedWeights;
