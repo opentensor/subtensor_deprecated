@@ -107,6 +107,10 @@ parameter_types! {
 	pub const InitialAdjustmentInterval: u64 = 100;
 	pub const InitialMaxRegistrationsPerBlock: u64 = 2;
 	pub const InitialTargetRegistrationsPerInterval: u64 = 2;
+
+	pub const InitialScalingLawPower: u8 = 50;
+	pub const InitialSynergyScalingLawPower: u8 = 60;
+	pub const InitialValidatorExcludeQuantile: u8 = 10;
 }
 
 thread_local!{
@@ -194,6 +198,10 @@ impl pallet_subtensor::Config for Test {
 	type InitialValidatorSequenceLen = InitialValidatorSequenceLen;
 	type InitialValidatorEpochLen = InitialValidatorEpochLen;
 	type InitialValidatorEpochsPerReset = InitialValidatorEpochsPerReset;
+	
+	type InitialScalingLawPower = InitialScalingLawPower;
+	type InitialSynergyScalingLawPower = InitialSynergyScalingLawPower;
+	type InitialValidatorExcludeQuantile = InitialValidatorExcludeQuantile;
 
 	type InitialImmunityPeriod = InitialImmunityPeriod;
 	type InitialMaxAllowedUids = InitialMaxAllowedUids;
@@ -214,6 +222,7 @@ impl pallet_subtensor::Config for Test {
 	type InitialAdjustmentInterval = InitialAdjustmentInterval;
 	type InitialMaxRegistrationsPerBlock = InitialMaxRegistrationsPerBlock;
 	type InitialTargetRegistrationsPerInterval = InitialTargetRegistrationsPerInterval;
+
 }
 
 impl pallet_sudo::Config for Test {

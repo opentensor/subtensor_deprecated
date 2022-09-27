@@ -1,5 +1,4 @@
-
-   
+use pallet_subtensor::{Error};
 use frame_support::{assert_ok};
 use frame_system::Config;
 mod mock;
@@ -239,6 +238,38 @@ fn test_sudo_reset_bonds() {
 }
 
 #[test]
+fn test_sudo_scaling_law_power() {
+	new_test_ext().execute_with(|| {
+        let scaling_law_power: u8 = 10;
+		assert_ok!(Subtensor::sudo_set_scaling_law_power(<<Test as Config>::Origin>::root(), scaling_law_power));
+        assert_eq!(Subtensor::get_scaling_law_power(), scaling_law_power);
+    });
+}
+
+#[test]
+fn test_sudo_synergy_scaling_law_power() {
+	new_test_ext().execute_with(|| {
+        let synergy_scaling_law_power: u8 = 10;
+		assert_ok!(Subtensor::sudo_set_synergy_scaling_law_power(<<Test as Config>::Origin>::root(), synergy_scaling_law_power));
+        assert_eq!(Subtensor::get_synergy_scaling_law_power(), synergy_scaling_law_power);
+    });
+}
+
+#[test]
+fn test_sudo_validator_exclude_quantile() {
+	new_test_ext().execute_with(|| {
+        let validator_exclude_quantile: u8 = 10;
+		assert_ok!(Subtensor::sudo_set_validator_exclude_quantile(<<Test as Config>::Origin>::root(), validator_exclude_quantile));
+        assert_eq!(Subtensor::get_validator_exclude_quantile(), validator_exclude_quantile);
+    });
+}
+
+
+//#########################
+//## sudo failure tests ###
+//#########################
+
+#[test]
 fn test_fails_sudo_immunity_period () {
 	new_test_ext().execute_with(|| {
         let immunity_period: u64 = 10;
@@ -429,5 +460,70 @@ fn test_fails_sudo_set_validator_epochs_per_reset() {
 fn test_fails_sudo_reset_bonds() {
 	new_test_ext().execute_with(|| {
 		assert_eq!(Subtensor::sudo_reset_bonds(<<Test as Config>::Origin>::signed(0)),  Err(DispatchError::BadOrigin.into()));
+    });
+}
+
+#[test]
+fn test_fails_sudo_scaling_law_power() {
+	new_test_ext().execute_with(|| {
+        let scaling_law_power: u8 = 10;
+        let init_scaling_law_power: u8 = Subtensor::get_scaling_law_power();
+		assert_eq!(Subtensor::sudo_set_scaling_law_power(<<Test as Config>::Origin>::signed(0), scaling_law_power),  Err(DispatchError::BadOrigin.into()));
+        assert_eq!(Subtensor::get_scaling_law_power(), init_scaling_law_power);
+    });
+}
+
+#[test]
+fn test_fails_sudo_synergy_scaling_law_power() {
+	new_test_ext().execute_with(|| {
+        let synergy_scaling_law_power: u8 = 10;
+        let init_synergy_scaling_law_power: u8 = Subtensor::get_synergy_scaling_law_power();
+		assert_eq!(Subtensor::sudo_set_synergy_scaling_law_power(<<Test as Config>::Origin>::signed(0), synergy_scaling_law_power),  Err(DispatchError::BadOrigin.into()));
+        assert_eq!(Subtensor::get_synergy_scaling_law_power(), init_synergy_scaling_law_power);
+    });
+}
+
+#[test]
+fn test_fails_sudo_validator_exclude_quantile() {
+	new_test_ext().execute_with(|| {
+        let validator_exclude_quantile: u8 = 10;
+        let init_validator_exclude_quantile: u8 = Subtensor::get_validator_exclude_quantile();
+		assert_eq!(Subtensor::sudo_set_validator_exclude_quantile(<<Test as Config>::Origin>::signed(0), validator_exclude_quantile),  Err(DispatchError::BadOrigin.into()));
+        assert_eq!(Subtensor::get_validator_exclude_quantile(), init_validator_exclude_quantile);
+    });
+}
+
+
+//##########################################
+//## sudo set with root; failure due to out of range ##
+//##########################################
+
+#[test]
+fn test_fails_sudo_scaling_law_power_out_of_range() {
+	new_test_ext().execute_with(|| {
+        let scaling_law_power: u8 = 101; // max is 100. Should fail
+        let init_scaling_law_power: u8 = Subtensor::get_scaling_law_power();
+		assert_eq!(Subtensor::sudo_set_scaling_law_power(<<Test as Config>::Origin>::root(), scaling_law_power),  Err(Error::<Test>::StorageValueOutOfRange.into()));
+        assert_eq!(Subtensor::get_scaling_law_power(), init_scaling_law_power);
+    });
+}
+
+#[test]
+fn test_fails_sudo_synergy_scaling_law_power_out_of_range() {
+	new_test_ext().execute_with(|| {
+        let synergy_scaling_law_power: u8 = 101; // max is 100. Should fail
+        let init_synergy_scaling_law_power: u8 = Subtensor::get_synergy_scaling_law_power();
+		assert_eq!(Subtensor::sudo_set_synergy_scaling_law_power(<<Test as Config>::Origin>::root(), synergy_scaling_law_power),  Err(Error::<Test>::StorageValueOutOfRange.into()));
+        assert_eq!(Subtensor::get_synergy_scaling_law_power(), init_synergy_scaling_law_power);
+    });
+}
+
+#[test]
+fn test_fails_sudo_validator_exclude_quantile_out_of_range() {
+	new_test_ext().execute_with(|| {
+        let validator_exclude_quantile: u8 = 101; // max is 100. Should fail
+        let init_validator_exclude_quantile: u8 = Subtensor::get_validator_exclude_quantile();
+		assert_eq!(Subtensor::sudo_set_validator_exclude_quantile(<<Test as Config>::Origin>::root(), validator_exclude_quantile),  Err(Error::<Test>::StorageValueOutOfRange.into()));
+        assert_eq!(Subtensor::get_validator_exclude_quantile(), init_validator_exclude_quantile);
     });
 }

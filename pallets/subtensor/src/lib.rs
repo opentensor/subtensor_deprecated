@@ -181,6 +181,19 @@ pub mod pallet {
 		/// Initial target registrations per interval.
 		#[pallet::constant]
 		type InitialTargetRegistrationsPerInterval: Get<u64>;
+
+		///// u8 where value (x) represents x * 10^-2
+		/// Initial scaling law power.
+		#[pallet::constant]
+		type InitialScalingLawPower: Get<u8>;
+
+		/// Initial synergy scaling law power.
+		#[pallet::constant]
+		type InitialSynergyScalingLawPower: Get<u8>;
+
+		/// Initial validator exclude quantile.
+		#[pallet::constant]
+		type InitialValidatorExcludeQuantile: Get<u8>;
 	}
 
 	pub type AccountIdOf<T> = <T as frame_system::Config>::AccountId;
@@ -542,6 +555,36 @@ pub mod pallet {
 		DefaultFoundationDistribution<T>
 	>;
 
+	#[pallet::type_value] 
+	pub fn DefaultScalingLawPower<T: Config>() -> u8 { T::InitialScalingLawPower::get() }
+	#[pallet::storage]
+	pub type ScalingLawPower<T> = StorageValue<
+		_, 
+		u8, 
+		ValueQuery,
+		DefaultScalingLawPower<T>
+	>;
+
+	#[pallet::type_value] 
+	pub fn DefaultSynergyScalingLawPower<T: Config>() -> u8{ T::InitialSynergyScalingLawPower::get() }
+	#[pallet::storage]
+	pub type SynergyScalingLawPower<T> = StorageValue<
+		_, 
+		u8, 
+		ValueQuery,
+		DefaultSynergyScalingLawPower<T>
+	>;
+
+	#[pallet::type_value] 
+	pub fn DefaultValidatorExcludeQuantile<T: Config>() -> u8 { T::InitialValidatorExcludeQuantile::get() }
+	#[pallet::storage]
+	pub type ValidatorExcludeQuantile<T> = StorageValue<
+		_, 
+		u8, 
+		ValueQuery,
+		DefaultValidatorExcludeQuantile<T>
+	>;
+
 	/// #[pallet::type_value] 
 	/// pub fn DefaultFoundationAccount<T: Config>() -> u64 { T::InitialFoundationAccount::get() }
 	#[pallet::storage]
@@ -761,6 +804,15 @@ pub mod pallet {
 		/// --- Event created when the foundation distribution has been set.
 		FoundationDistributionSet( u64 ),
 
+		/// --- Event created when the scaling law power has been set.
+		ScalingLawPowerSet( u8 ),
+
+		/// --- Event created when the synergy scaling law power has been set.
+		SynergyScalingLawPowerSet( u8 ),
+
+		/// --- Event created when the validator exclude quantile has been set.
+		ValidatorExcludeQuantileSet( u8 ),
+
 		/// --- Event created when the validator default epoch length has been set.
 		ValidatorEpochLenSet(u64),
 
@@ -865,6 +917,9 @@ pub mod pallet {
 
 		/// ---- Thrown when the caller attempts to use a repeated work.
 		WorkRepeated,
+
+		/// ---- Thrown when the caller attempts to set a storage value outside of its allowed range.
+		StorageValueOutOfRange,
 	}
 
 	impl<T: Config> Printable for Error<T> {
@@ -874,6 +929,7 @@ pub mod pallet {
                 Error::NotRegistered  => "The node with the supplied public key is not registered".print(),
                 Error::WeightVecNotEqualSize => "The vec of keys and the vec of values are not of the same size".print(),
                 Error::NonAssociatedColdKey => "The used cold key is not associated with the hot key acccount".print(),
+				Error::StorageValueOutOfRange => "The supplied storage value is outside of its allowed range".print(),
                 _ => "Invalid Error Case".print(),
             }
         }
@@ -1371,6 +1427,42 @@ pub mod pallet {
 			Self::deposit_event( Event::ResetBonds() );
 			Ok(())
 		}
+
+		#[pallet::weight((0, DispatchClass::Operational, Pays::No))]
+		pub fn sudo_set_scaling_law_power( 
+			origin:OriginFor<T>, 
+			scaling_law_power: u8 
+		) -> DispatchResult {
+			ensure_root( origin )?;
+			ensure!( scaling_law_power <= 100, Error::<T>::StorageValueOutOfRange  ); // The power must be between 0 and 100 => 0% and 100%
+			ScalingLawPower::<T>::set( scaling_law_power );
+			Self::deposit_event( Event::ScalingLawPowerSet( scaling_law_power ));
+			Ok(())
+		}
+
+		#[pallet::weight((0, DispatchClass::Operational, Pays::No))]
+		pub fn sudo_set_synergy_scaling_law_power( 
+			origin:OriginFor<T>, 
+			synergy_scaling_law_power: u8 
+		) -> DispatchResult {
+			ensure_root( origin )?;
+			ensure!( synergy_scaling_law_power <= 100, Error::<T>::StorageValueOutOfRange ); // The power must be between 0 and 100 => 0% and 100%
+		    SynergyScalingLawPower::<T>::set( synergy_scaling_law_power );
+			Self::deposit_event( Event::SynergyScalingLawPowerSet( synergy_scaling_law_power ));
+			Ok(())
+		}
+
+		#[pallet::weight((0, DispatchClass::Operational, Pays::No))]
+		pub fn sudo_set_validator_exclude_quantile( 
+			origin:OriginFor<T>, 
+			validator_exclude_quantile: u8 
+		) -> DispatchResult {
+			ensure_root( origin )?;
+			ensure!( validator_exclude_quantile <= 100, Error::<T>::StorageValueOutOfRange ); // The quantile must be between 0 and 100 => 0% and 100%
+		    ValidatorExcludeQuantile::<T>::set( validator_exclude_quantile );
+			Self::deposit_event( Event::ValidatorExcludeQuantileSet( validator_exclude_quantile ));
+			Ok(())
+		}
 	}
 
 	// ---- Subtensor helper functions.
@@ -1500,6 +1592,28 @@ pub mod pallet {
 		pub fn set_validator_epochs_per_reset( validator_epochs_per_reset: u64 ) {
 			ValidatorEpochsPerReset::<T>::put( validator_epochs_per_reset );
 		}
+
+		pub fn get_scaling_law_power( ) -> u8 {
+			return ScalingLawPower::<T>::get();
+		}
+		pub fn set_scaling_law_power( scaling_law_power: u8 ) {
+			ScalingLawPower::<T>::put( scaling_law_power );
+		}
+
+		pub fn get_synergy_scaling_law_power( ) -> u8 {
+			return SynergyScalingLawPower::<T>::get();
+		}
+		pub fn set_synergy_scaling_law_power( synergy_scaling_law_power: u8 ) {
+			SynergyScalingLawPower::<T>::put( synergy_scaling_law_power );
+		}
+
+		pub fn get_validator_exclude_quantile( ) -> u8 {
+			return ValidatorExcludeQuantile::<T>::get();
+		}
+		pub fn set_validator_exclude_quantile( validator_exclude_quantile: u8 ) {
+			ValidatorExcludeQuantile::<T>::put( validator_exclude_quantile );
+		}
+
 		// -- Get step consensus shift (1/kappa)
 		pub fn get_kappa( ) -> u64 {
 			return Kappa::<T>::get();
