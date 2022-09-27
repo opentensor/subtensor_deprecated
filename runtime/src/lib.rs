@@ -311,6 +311,9 @@ impl pallet_subtensor::Config for Runtime {
 	type InitialRho = InitialRho;
 	type InitialKappa = InitialKappa;
 	type SelfOwnership = SelfOwnership;
+	type InitialScalingLawPower = InitialScalingLawPower;
+	type InitialSynergyScalingLawPower = InitialSynergyScalingLawPower;
+	type InitialValidatorExcludeQuantile = InitialValidatorExcludeQuantile;
 	type InitialValidatorBatchSize = InitialValidatorBatchSize;
 	type InitialValidatorSequenceLen = InitialValidatorSequenceLen;
 	type InitialValidatorEpochLen = InitialValidatorEpochLen;
