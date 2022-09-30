@@ -3,6 +3,8 @@ use sp_std::convert::TryInto;
 use substrate_fixed::types::I65F63;
 use substrate_fixed::transcendental::exp;
 use substrate_fixed::transcendental::log2;
+use substrate_fixed::transcendental::pow;
+use substrate_fixed::transcendental::sqrt;
 use frame_support::IterableStorageMap;
 
 const LOG_TARGET: &'static str = "runtime::subtensor::step";
@@ -252,6 +254,12 @@ impl<T: Config> Pallet<T> {
         let mut total_trust: I65F63 = I65F63::from_num( 0.0 );
         let mut ranks: Vec<I65F63> = vec![ I65F63::from_num( 0.0 ) ; n];
         let mut trust: Vec<I65F63> = vec![ I65F63::from_num( 0.0 ) ; n];
+
+        let mut weight_totals: Vec<I65F63> = vec![ I65F63::from_num( 0.0 ) ; n];  // total active non-self weight pointing to j.
+        let mut weight_consensus: Vec<I65F63> = vec![ I65F63::from_num( 0.0 ) ; n];  // bond-weighted average weight pointing to j.
+        let mut normalized_weight_avg: Vec<I65F63> = vec![ I65F63::from_num( 0.0 ) ; n];  // bond-weighted average normalized weight pointing to j.
+        let mut normalized_weight_var: Vec<I65F63> = vec![ I65F63::from_num( 0.0 ) ; n];  // bond-weighted variance of normalized weight pointing to j.
+
         for uid_i in uids.iter() {
 
             // === Get vars for uid_i ===
@@ -272,6 +280,7 @@ impl<T: Config> Pallet<T> {
                 let mut trust_increment_ij: I65F63 = I65F63::from_num(0.0);
                 if active[ *uid_i as usize ] == 1 { 
                     let weight_ij: I65F63 = I65F63::from_num( *weight_ij ) / u32_max; // Range( 0, 1 )
+                    weight_totals[ *uid_j as usize ] += weight_ij;  // add to total active non-self weight pointing to j
                     trust_increment_ij = stake_i; // Range( 0, 1 )                
                     rank_increment_ij = stake_i * weight_ij; // Range( 0, total_active_stake )
                     bond_increment_ij = rank_increment_ij * block_emission;
@@ -292,6 +301,71 @@ impl<T: Config> Pallet<T> {
                 total_bonds_purchased += moving_bond_increment_ij.to_num::<u64>();
 
             }
+
+            // === Iterate over weights ===
+            for ( uid_j, weight_ij ) in weights_i.iter() {
+                if *uid_i == *uid_j { continue } // Skip self-weight.
+
+                if active[ *uid_i as usize ] == 1 {
+                    // Get i -> j bonds.
+                    let bonds_ij: u64 = bonds[ *uid_i as usize ][ *uid_j as usize ]; // Range( 0, total_emission );
+                    let total_bonds_j: u64 = bond_totals[ *uid_j as usize ]; // Range( 0, total_emission );
+                    if total_bonds_j == 0 { continue; } // No bond ownership in this neuron.
+                    if bonds_ij == 0 { continue; } // No need to distribute dividends for zero bonds.
+
+                    // Compute bond fraction.
+                    let bond_fraction_ij: I65F63 = I65F63::from_num( bonds_ij ) / I65F63::from_num( total_bonds_j ); // Range( 0, 1 );
+
+                    // Get i -> j weight
+                    let weight_ij: I65F63 = I65F63::from_num( *weight_ij ) / u32_max; // Range( 0, 1 );
+
+                    // Compute bond-weighted average weight pointing to j.
+                    weight_consensus[ *uid_j as usize ] += bond_fraction_ij * weight_ij;  // Range( 0, 1 );
+
+                    let total_weight_j: I65F63 = weight_totals[ *uid_j as usize ];
+                    if total_weight_j == 0 { continue; }  // No weight set from i -> j.
+
+                    // Get active non-self weight_ij normalized over j.
+                    let weight_fraction_ij: I65F63 = weight_ij / total_weight_j;
+                    if weight_fraction_ij == 0 { continue; }  // Skip zero weight_fraction_ij.
+
+                    // Compute bond-weighted average normalized weight pointing to j.
+                    normalized_weight_avg[ *uid_j as usize ] += bond_fraction_ij * weight_fraction_ij;  // Range( 0, 1 );
+                }
+            }
+
+            // === Iterate over weights ===
+            for ( uid_j, weight_ij ) in weights_i.iter() {
+                if *uid_i == *uid_j { continue } // Skip self-weight.
+
+                if active[ *uid_i as usize ] == 1 {
+                    // Get i -> j bonds.
+                    let bonds_ij: u64 = bonds[ *uid_i as usize ][ *uid_j as usize ]; // Range( 0, total_emission );
+                    let total_bonds_j: u64 = bond_totals[ *uid_j as usize ]; // Range( 0, total_emission );
+                    if total_bonds_j == 0 { continue; } // No bond ownership in this neuron.
+                    if bonds_ij == 0 { continue; } // No need to distribute dividends for zero bonds.
+
+                    // Compute bond fraction.
+                    let bond_fraction_ij: I65F63 = I65F63::from_num( bonds_ij ) / I65F63::from_num( total_bonds_j ); // Range( 0, 1 );
+
+                    // Get i -> j weight
+                    let weight_ij: I65F63 = I65F63::from_num( *weight_ij ) / u32_max; // Range( 0, 1 );
+
+                    let total_weight_j: I65F63 = weight_totals[ *uid_j as usize ];
+                    if total_weight_j == 0 { continue; }  // No weight set from i -> j.
+
+                    // Get active non-self weight_ij normalized over j.
+                    let weight_fraction_ij: I65F63 = weight_ij / total_weight_j;
+                    if weight_fraction_ij == 0 { continue; }  // Skip zero weight_fraction_ij.
+
+                    let normalized_weight_avg_j: I65F63 = normalized_weight_avg[ *uid_j as usize ];
+
+                    // Compute bond-weighted average normalized weight pointing to j.
+                    let weight_diff: I65F63 = normalized_weight_avg_j - weight_fraction_ij;
+                    let sqr_weight_diff: I65F63 = pow( weight_diff, I65F63::from_num( 2.0 ) );
+                    normalized_weight_var[ *uid_j as usize ] += bond_fraction_ij * sqr_weight_diff;  // Range( 0, 1 );
+                }
+            }
         }
         // === Normalize ranks + trust ===
         if total_trust > 0 && total_ranks > 0 {
@@ -300,8 +374,23 @@ impl<T: Config> Pallet<T> {
                 trust[ *uid_i as usize ] = trust[ *uid_i as usize ] / total_normalized_active_stake; // Vector will sum to u64_max
             }
         }
+
+        // === Calculate bond-weighted agreement level on weight pointing to j.
+        let mut weight_trust: Vec<I65F63> = vec![ I65F63::from_num( 0.0 ) ; n];
+        for uid_j in uids.iter() {
+            // Bond-weighted variance of normalized weight pointing to j.
+            let normalized_weight_var_j: I65F63 = normalized_weight_var[ *uid_j as usize ];  // Range( 0, 0.25 );
+            // Bond-weighted standard deviation of normalized weight pointing to j.
+            let normalized_weight_dev_j: I65F63 = sqrt( normalized_weight_var_j );  // Range( 0, 0.5 );
+            // Weight trust calculation.
+            let weight_trust_j: I65F63 = 1 - 2 * normalized_weight_dev_j;  // Range( 0, 1 );
+            // Raise trust to the trust_power = 3.6.
+            weight_trust[ *uid_j as usize ] = pow( weight_trust_j, I65F63::from_num( 3.6 ) );  // Range( 0, 1 );
+        }
+
 		 log::trace!(target: LOG_TARGET, "ranks: {:?}", ranks);
 		 log::trace!(target: LOG_TARGET, "trust: {:?}", trust);
+		 log::trace!(target: LOG_TARGET, "weight_trust: {:?}", weight_trust);
 		 log::trace!(target: LOG_TARGET, "bonds: {:?}, {:?}, {:?}", bonds, bond_totals, total_bonds_purchased);
 
         // Compute consensus, incentive.
@@ -319,8 +408,10 @@ impl<T: Config> Pallet<T> {
                 // Compute consensus.
                 let ranks_i: I65F63 = ranks[ *uid_i as usize ];
                 let consensus_i: I65F63 = one / (one + exponentiated_trust); // Range( 0, 1 )
-                let incentive_i: I65F63 = ranks_i * consensus_i; // Range( 0, 1 )
-                consensus[ *uid_i as usize ] = consensus_i; // Range( 0, 1 )
+                let weight_consensus_i: I65F63 = weight_consensus[ *uid_i as usize ]; // Range( 0, 1 )
+                let weight_trust_i: I65F63 = weight_trust[ *uid_i as usize ]; // Range( 0, 1 )
+                let incentive_i: I65F63 = ranks_i * consensus_i * weight_trust_i; // Range( 0, 1 )
+                consensus[ *uid_i as usize ] = weight_consensus_i; // Range( 0, 1 )
                 incentive[ *uid_i as usize ] = incentive_i; // Range( 0, 1 )
                 total_incentive += incentive_i;
             }
@@ -398,7 +489,7 @@ impl<T: Config> Pallet<T> {
             neuron_i.emission = emission[ uid_i as usize ];
             neuron_i.stake = neuron_i.stake + emission[ uid_i as usize ];
             neuron_i.rank = (ranks[ uid_i as usize ] * u64_max).to_num::<u64>();
-            neuron_i.trust = (trust[ uid_i as usize ] * u64_max).to_num::<u64>();
+            neuron_i.trust = (weight_trust[ uid_i as usize ] * u64_max).to_num::<u64>();
             neuron_i.consensus = (consensus[ uid_i as usize ] * u64_max).to_num::<u64>();
             neuron_i.incentive = (incentive[ uid_i as usize ] * u64_max).to_num::<u64>();
             neuron_i.dividends = (dividends[ uid_i as usize ] * u64_max).to_num::<u64>();
