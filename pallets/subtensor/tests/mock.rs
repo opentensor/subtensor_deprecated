@@ -87,7 +87,7 @@ parameter_types! {
 	pub const InitialBondsMovingAverage: u64 = 500_000;
 	pub const InitialIncentivePruningDenominator: u64 = 1;
 	pub const InitialStakePruningDenominator: u64 = 1;
-	pub const InitialStakePruningMin: u64 = 0;
+	pub const InitialStakePruningMin: u64 = 1024;
 	pub const InitialFoundationDistribution: u64 = 0;
 
 	pub const InitialValidatorBatchSize: u64 = 10;
