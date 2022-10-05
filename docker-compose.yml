@@ -7,6 +7,10 @@ services:
     cpu_count: 2
     mem_limit: 4000000000
     memswap_limit: 8000000000
+    logging:
+        options:
+            driver: "json-file"
+            max-size: "2048m"
     ports:
       - "9944:9944"
       - "30333:30333"
