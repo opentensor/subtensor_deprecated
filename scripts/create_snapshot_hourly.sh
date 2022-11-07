@@ -62,7 +62,7 @@ if [ "${RUNNING}" -ne 0 ]; then
 		cd ~		
 		# Build docker image
 		echo "[+] Building Docker image from directory ${SNAPSHOT_TMP} and snapshot file ${SNAPSHOT_FILENAME}"
-		/usr/bin/docker build -t subtensor . --platform linux/x86_64 --build-arg SNAPSHOT_DIR=$SNAPSHOT_TMP --build-arg SNAPSHOT_FILE=$SNAPSHOT_FILENAME  -f /root/subtensor/Dockerfile
+		/usr/bin/docker build -t subtensor . --platform linux/x86_64 --build-arg SNAPSHOT_DIR=$SNAPSHOT_TMP --build-arg SNAPSHOT_FILE=$SNAPSHOT_FILENAME  -f /root/subtensor/Dockerfile --squash
 
 		# Tag new image with latest
 		echo "[+] Tagging new image with latest tag"
