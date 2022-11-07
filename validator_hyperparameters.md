@@ -4,7 +4,7 @@
 | **adjustmentInterval**             | 100                  |
 | **blocksPerStep**                  | 100                  |
 | **bondsMovingAverage**             | 900,000              |
-| **immunityPeriod**                 | 2048                 |
+| **immunityPeriod**                 | 3072                 |
 | **incentivePruningDenominator**    | 1                    |
 | **kappa**                          | 2                    |
 | **maxAllowedMaxMinRatio**          | 64                   |
