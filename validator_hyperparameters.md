@@ -17,7 +17,7 @@
 | **validatorBatchSize**             | 32                   |
 | **validatorEpochLen**              | 250                  |
 | **validatorEpochsPerReset**        | 60                   |
-| **validatorSequenceLength**        | 128                  |
+| **validatorSequenceLength**        | 256                  |
 | **validatorExcludeQuantile**       | 10                   |
 | **scalingLawPower**                | 50                   |
 | **synergyScalingLawPower**         | 60                   |
