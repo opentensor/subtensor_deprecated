@@ -20,4 +20,4 @@
 | **validatorExcludeQuantile**       | 10                   |
 | **scalingLawPower**                | 50                   |
 | **synergyScalingLawPower**         | 60                   |
-| **MaxWeightLimit**                 | 8_589_934            |
+| **MaxWeightLimit**                 | 17_179_868           |
