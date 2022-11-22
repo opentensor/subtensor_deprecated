@@ -1,6 +1,6 @@
 | **Validator Hyperparameter**       | **Value**            |
 |------------------------------------|----------------------|
-| **adjustmentInterval**             | 100                  |
+| **adjustmentInterval**             | 135                  |
 | **blocksPerStep**                  | 100                  |
 | **bondsMovingAverage**             | 900,000              |
 | **immunityPeriod**                 | 4096                 |
