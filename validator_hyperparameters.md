@@ -19,5 +19,5 @@
 | **validatorSequenceLength**        | 256                  |
 | **validatorExcludeQuantile**       | 5                    |
 | **scalingLawPower**                | 50                   |
-| **synergyScalingLawPower**         | 60                   |
+| **synergyScalingLawPower**         | 50                   |
 | **MaxWeightLimit**                 | 17_179_868           |
