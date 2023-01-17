@@ -94,9 +94,9 @@ parameter_types! {
 	pub const InitialValidatorSequenceLen: u64 = 10;
 	pub const InitialValidatorEpochLen: u64 = 10;
 	pub const InitialValidatorEpochsPerReset: u64 = 10;
-	pub const InitialValidatorExcludeQuantile: u8 = 10;
 	pub const InitialValidatorPruneLen: u64 = 0;
 	pub const InitialValidatorLogitsDivergence: u64 = 0;
+	pub const InitialValidatorExcludeQuantile: u8 = 10;
 	pub const InitialScalingLawPower: u8 = 50;
 	pub const InitialSynergyScalingLawPower: u8 = 60;
 
