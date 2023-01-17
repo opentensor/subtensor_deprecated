@@ -199,9 +199,9 @@ impl pallet_subtensor::Config for Test {
 	type InitialValidatorSequenceLen = InitialValidatorSequenceLen;
 	type InitialValidatorEpochLen = InitialValidatorEpochLen;
 	type InitialValidatorEpochsPerReset = InitialValidatorEpochsPerReset;
-	type InitialValidatorExcludeQuantile = InitialValidatorExcludeQuantile;
 	type InitialValidatorPruneLen = InitialValidatorPruneLen;
 	type InitialValidatorLogitsDivergence = InitialValidatorLogitsDivergence;
+	type InitialValidatorExcludeQuantile = InitialValidatorExcludeQuantile;
 	type InitialScalingLawPower = InitialScalingLawPower;
 	type InitialSynergyScalingLawPower = InitialSynergyScalingLawPower;
 
