@@ -18,6 +18,8 @@
 | **validatorEpochsPerReset**        | 60                   |
 | **validatorSequenceLength**        | 256                  |
 | **validatorExcludeQuantile**       | 5                    |
+| **validatorPruneLen**              | 0                    |
+| **validatorLogitsDivergence**      | 0                    |
 | **scalingLawPower**                | 50                   |
 | **synergyScalingLawPower**         | 50                   |
 | **MaxWeightLimit**                 | 17_179_868           |
