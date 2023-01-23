@@ -17,8 +17,8 @@
 | **validatorEpochLen**              | 250                  |
 | **validatorEpochsPerReset**        | 60                   |
 | **validatorSequenceLength**        | 256                  |
-| **validatorPruneLen**              | 0                    |
-| **validatorLogitsDivergence**      | 0                    |
+| **validatorPruneLen**              | 1                    |
+| **validatorLogitsDivergence**      | 9223372036854775807  |
 | **validatorExcludeQuantile**       | 5                    |
 | **scalingLawPower**                | 50                   |
 | **synergyScalingLawPower**         | 50                   |
